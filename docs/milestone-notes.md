@@ -67,3 +67,57 @@ FY2025 Infrastructure revenue grew 82% to NT$182.0bn, and its segment profit ros
   - Gross margin "around 35% is reasonable".
   - Tax rate about 22%.
   - HVDC mass production starts in 3Q26, with meaningful volume in 2027.
+
+---
+
+## M2 — Historical model (16 Oct 2026)
+
+### What was built
+
+- **`src/delta/build_excel.py`** writes `model/delta_model.xlsx` with openpyxl. It has nine sheets: Cover, Assumptions, Historicals, Segments, IS, BS, CF, Schedules and Checks.
+- **Size and checks:** 1,195 live formulas and zero formula errors. All 18 checks are TRUE for FY2021A–FY2025A, 1H25A and 1H26A, and they roll up to one cell on the Cover.
+- **`src/delta/recalc.py`** recalculates the workbook in headless LibreOffice and scans every formula for errors. **`src/delta/preview.py`** renders sheets to PNG for the README.
+- **`tests/test_excel.py`** (runs in CI) checks four things:
+  - the workbook recalculates cleanly;
+  - every check is TRUE;
+  - five key values match the filings;
+  - **no hard-coded number appears on the IS, BS, CF or Schedules sheets**.
+- `make model` rebuilds it; `make all` runs the whole pipeline.
+
+### What the schedules show (FY2021 → FY2025)
+
+| | FY2021 | FY2022 | FY2023 | FY2024 | FY2025 |
+|---|---:|---:|---:|---:|---:|
+| Receivable days | 82 | 83 | 72 | 78 | 80 |
+| Inventory days | 107 | 106 | 98 | 108 | 102 |
+| Payable days | 89 | 84 | 69 | 89 | 95 |
+| Total capex % revenue | 7.7% | 5.8% | 7.1% | 8.3% | 8.5% |
+| Depreciation % opening PP&E | – | 19.6% | 20.4% | 21.5% | 20.8% |
+| Effective tax rate | 20.0% | 19.7% | 20.1% | 21.3% | 22.7% |
+| Payout of prior-year earnings | – | 53% | 78% | 50% | 52% |
+| Return on average equity | – | 19% | 17% | 16% | 24% |
+
+### The 3 most important modelling choices
+
+1. **One input layer; everything else is a formula.**
+   - The only hard-coded financials are on Historicals (blue), and each one is traceable to a page through `sources.csv`.
+   - The statements link to those inputs and **recompute** every subtotal rather than copying the reported one. That lets the Checks sheet compare each recomputed subtotal with the reported figure.
+   - Each "other" line is anchored to a *different* reported subtotal (current assets, non-current assets, current liabilities and so on). So *assets = liabilities + equity* is a genuine test, not true by construction.
+   - A test fails the build if a number is ever typed into a statement sheet.
+2. **Ratio definitions that follow how Delta actually operates.**
+   - Working-capital days use year-end balances and a 365-day year, kept as an input.
+   - **Payout is measured against the prior year's earnings**, because Taiwanese companies pay dividends in the year after they're earned (Delta pays in Q3). That's why 1H cash flow shows no dividend to shareholders.
+   - It's also why June balance sheets are distorted. Other current liabilities jump from NT$97.9bn (Dec-25) to NT$165.2bn (Jun-26), most likely the declared-but-unpaid NT$11.6/share dividend (about NT$30bn). I'll confirm against the Q2 2026 notes in M3. **So interim balance sheets aren't used to set working-capital assumptions.**
+3. **Interim periods sit beside the annual series, not inside it.** 1H25A and 1H26A get their own columns to the right, so forecasts can run FY2025A → FY2026E with consistent formulas. Share count = share capital / NT$10 par: 2,597.5m, unchanged since FY2021. Computed EPS matches reported basic EPS within NT$0.02 in every period, which shows there are no material buybacks or issuance to model.
+
+### 3 questions an interviewer could ask
+
+1. "Why does your balance-sheet check prove anything if you built the balance sheet from the reported numbers?"
+2. "Delta's payable days rose from 69 to 95 between FY2023 and FY2025. Is that sustainable, and how will you forecast it?"
+3. "Why measure payout against last year's earnings rather than this year's?"
+
+### Still open
+
+- Q3 2026 results (decision D2): the forecast base period moves to 9M26 when they're published (~29–30 Oct 2026).
+- The 10-figure review in `docs/m1-review-sample.md`.
+- Confirm the June 2026 dividend payable in the Q2 2026 notes (M3).
