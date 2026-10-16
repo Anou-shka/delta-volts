@@ -1,0 +1,423 @@
+check,document,period,expected,actual,diff,pass
+BS: lines sum to 'Total current assets',fs_2021_annual_consolidated.pdf,FY2020,174886855.0,174886855.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2021_annual_consolidated.pdf,FY2020,161529360.0,161529360.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2021_annual_consolidated.pdf,FY2020,94023501.0,94023501.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2021_annual_consolidated.pdf,FY2020,63803073.0,63803073.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2021_annual_consolidated.pdf,FY2020,145899338.0,145899338.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2021_annual_consolidated.pdf,FY2021,196878194.0,196878194.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2021_annual_consolidated.pdf,FY2021,168234116.0,168234116.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2021_annual_consolidated.pdf,FY2021,108169477.0,108169477.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2021_annual_consolidated.pdf,FY2021,70818175.0,70818175.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2021_annual_consolidated.pdf,FY2021,154786522.0,154786522.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2021_annual_consolidated.pdf,FY2020,-19104772.0,-19104772.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2021_annual_consolidated.pdf,FY2020,-8825630.0,-8825630.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2021_annual_consolidated.pdf,FY2021,-26481259.0,-26481259.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2021_annual_consolidated.pdf,FY2021,-8336860.0,-8336860.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2021_annual_consolidated.pdf,FY2020,-55786574.0,-55786574.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2021_annual_consolidated.pdf,FY2020,2849479.0,2849479.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2021_annual_consolidated.pdf,FY2020,27384339.0,27384339.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2021_annual_consolidated.pdf,FY2021,-58844710.0,-58844710.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2021_annual_consolidated.pdf,FY2021,4262806.0,4262806.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2021_annual_consolidated.pdf,FY2021,28499233.0,28499233.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2022_annual_consolidated.pdf,FY2021,196878194.0,196878194.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2022_annual_consolidated.pdf,FY2021,168234116.0,168234116.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2022_annual_consolidated.pdf,FY2021,108169477.0,108169477.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2022_annual_consolidated.pdf,FY2021,70818175.0,70818175.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2022_annual_consolidated.pdf,FY2021,154786522.0,154786522.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2022_annual_consolidated.pdf,FY2022,240450466.0,240450466.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2022_annual_consolidated.pdf,FY2022,185423340.0,185423340.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2022_annual_consolidated.pdf,FY2022,125013428.0,125013428.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2022_annual_consolidated.pdf,FY2022,75493193.0,75493193.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2022_annual_consolidated.pdf,FY2022,186788907.0,186788907.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2022_annual_consolidated.pdf,FY2021,-26481259.0,-26481259.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2022_annual_consolidated.pdf,FY2021,-8336860.0,-8336860.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2022_annual_consolidated.pdf,FY2022,-24719243.0,-24719243.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2022_annual_consolidated.pdf,FY2022,-19739172.0,-19739172.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2022_annual_consolidated.pdf,FY2021,-58844710.0,-58844710.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2022_annual_consolidated.pdf,FY2021,4262806.0,4262806.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2022_annual_consolidated.pdf,FY2021,28499233.0,28499233.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2022_annual_consolidated.pdf,FY2022,-69333739.0,-69333739.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2022_annual_consolidated.pdf,FY2022,4626474.0,4626474.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2022_annual_consolidated.pdf,FY2022,36990738.0,36990738.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2023_annual_consolidated.pdf,FY2022,240450466.0,240450466.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2023_annual_consolidated.pdf,FY2022,185423340.0,185423340.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2023_annual_consolidated.pdf,FY2022,125013428.0,125013428.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2023_annual_consolidated.pdf,FY2022,75493193.0,75493193.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2023_annual_consolidated.pdf,FY2022,186788907.0,186788907.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2023_annual_consolidated.pdf,FY2023,259958184.0,259958184.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2023_annual_consolidated.pdf,FY2023,197788394.0,197788394.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2023_annual_consolidated.pdf,FY2023,126084553.0,126084553.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2023_annual_consolidated.pdf,FY2023,88926532.0,88926532.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2023_annual_consolidated.pdf,FY2023,199163778.0,199163778.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2023_annual_consolidated.pdf,FY2022,-24719243.0,-24719243.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2023_annual_consolidated.pdf,FY2022,-19739172.0,-19739172.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2023_annual_consolidated.pdf,FY2023,-33501693.0,-33501693.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2023_annual_consolidated.pdf,FY2023,-10478062.0,-10478062.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2023_annual_consolidated.pdf,FY2022,-69333739.0,-69333739.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2023_annual_consolidated.pdf,FY2022,4626474.0,4626474.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2023_annual_consolidated.pdf,FY2022,36990738.0,36990738.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2023_annual_consolidated.pdf,FY2023,-76263191.0,-76263191.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2023_annual_consolidated.pdf,FY2023,7692274.0,7692274.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2023_annual_consolidated.pdf,FY2023,38880367.0,38880367.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2024_annual_consolidated.pdf,FY2023,259958184.0,259958184.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2024_annual_consolidated.pdf,FY2023,197788394.0,197788394.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2024_annual_consolidated.pdf,FY2023,126084553.0,126084553.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2024_annual_consolidated.pdf,FY2023,88926532.0,88926532.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2024_annual_consolidated.pdf,FY2023,199163778.0,199163778.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2024_annual_consolidated.pdf,FY2024,310924848.0,310924848.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2024_annual_consolidated.pdf,FY2024,220972869.0,220972869.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2024_annual_consolidated.pdf,FY2024,152283126.0,152283126.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2024_annual_consolidated.pdf,FY2024,100049255.0,100049255.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2024_annual_consolidated.pdf,FY2024,230087286.0,230087286.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2024_annual_consolidated.pdf,FY2023,-33501693.0,-33501693.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2024_annual_consolidated.pdf,FY2023,-10478062.0,-10478062.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2024_annual_consolidated.pdf,FY2024,-40360023.0,-40360023.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2024_annual_consolidated.pdf,FY2024,-11117582.0,-11117582.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2024_annual_consolidated.pdf,FY2023,-76263191.0,-76263191.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2024_annual_consolidated.pdf,FY2023,7692274.0,7692274.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2024_annual_consolidated.pdf,FY2023,38880367.0,38880367.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2024_annual_consolidated.pdf,FY2024,-88928406.0,-88928406.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2024_annual_consolidated.pdf,FY2024,3663860.0,3663860.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2024_annual_consolidated.pdf,FY2024,40391100.0,40391100.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2025_annual_consolidated.pdf,FY2024,310924848.0,310924848.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2025_annual_consolidated.pdf,FY2024,220972869.0,220972869.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2025_annual_consolidated.pdf,FY2024,152283126.0,152283126.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2025_annual_consolidated.pdf,FY2024,100049255.0,100049255.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2025_annual_consolidated.pdf,FY2024,230087286.0,230087286.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2025_annual_consolidated.pdf,FY2025,395780787.0,395780787.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2025_annual_consolidated.pdf,FY2025,243837813.0,243837813.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2025_annual_consolidated.pdf,FY2025,209664989.0,209664989.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2025_annual_consolidated.pdf,FY2025,104564608.0,104564608.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2025_annual_consolidated.pdf,FY2025,268057976.0,268057976.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2025_annual_consolidated.pdf,FY2024,-40360023.0,-40360023.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2025_annual_consolidated.pdf,FY2024,-11117582.0,-11117582.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2025_annual_consolidated.pdf,FY2025,-53214206.0,-53214206.0,0.0,True
+CF: lines sum to 'Net cash flows used in financing activities',fs_2025_annual_consolidated.pdf,FY2025,-9401397.0,-9401397.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2025_annual_consolidated.pdf,FY2024,-88928406.0,-88928406.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2025_annual_consolidated.pdf,FY2024,3663860.0,3663860.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2025_annual_consolidated.pdf,FY2024,40391100.0,40391100.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2025_annual_consolidated.pdf,FY2025,-106224484.0,-106224484.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2025_annual_consolidated.pdf,FY2025,3933922.0,3933922.0,0.0,True
+IS: lines sum to 'Profit for the year',fs_2025_annual_consolidated.pdf,FY2025,67936308.0,67936308.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2026q1_consolidated.pdf,1Q25,338083519.0,338083519.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2026q1_consolidated.pdf,1Q25,228485154.0,228485154.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2026q1_consolidated.pdf,1Q25,157927281.0,157927281.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2026q1_consolidated.pdf,1Q25,109171894.0,109171894.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2026q1_consolidated.pdf,1Q25,244969538.0,244969538.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2026q1_consolidated.pdf,1Q26,431011083.0,431011083.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2026q1_consolidated.pdf,1Q26,253162892.0,253162892.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2026q1_consolidated.pdf,1Q26,220629087.0,220629087.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2026q1_consolidated.pdf,1Q26,106285681.0,106285681.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2026q1_consolidated.pdf,1Q26,299542746.0,299542746.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2026q1_consolidated.pdf,FY2025,395780787.0,395780787.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2026q1_consolidated.pdf,FY2025,243837813.0,243837813.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2026q1_consolidated.pdf,FY2025,209664989.0,209664989.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2026q1_consolidated.pdf,FY2025,104564608.0,104564608.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2026q1_consolidated.pdf,FY2025,268057976.0,268057976.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2026q1_consolidated.pdf,1Q25,-11843464.0,-11843464.0,0.0,True
+CF: lines sum to 'Net cash flows (used in) from financing activities',fs_2026q1_consolidated.pdf,1Q25,14638384.0,14638384.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2026q1_consolidated.pdf,1Q26,-12318347.0,-12318347.0,0.0,True
+CF: lines sum to 'Net cash flows (used in) from financing activities',fs_2026q1_consolidated.pdf,1Q26,-327737.0,-327737.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2026q1_consolidated.pdf,1Q25,-23752418.0,-23752418.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2026q1_consolidated.pdf,1Q25,1626894.0,1626894.0,0.0,True
+IS: lines sum to 'Profit for the period',fs_2026q1_consolidated.pdf,1Q25,12043322.0,12043322.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2026q1_consolidated.pdf,1Q26,-30543568.0,-30543568.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2026q1_consolidated.pdf,1Q26,2675520.0,2675520.0,0.0,True
+IS: lines sum to 'Profit for the period',fs_2026q1_consolidated.pdf,1Q26,23834549.0,23834549.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2026q2_consolidated.pdf,1H25,331615258.0,331615258.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2026q2_consolidated.pdf,1H25,214803658.0,214803658.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2026q2_consolidated.pdf,1H25,183955819.0,183955819.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2026q2_consolidated.pdf,1H25,101565234.0,101565234.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2026q2_consolidated.pdf,1H25,212197761.0,212197761.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2026q2_consolidated.pdf,1H26,487049600.0,487049600.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2026q2_consolidated.pdf,1H26,267383732.0,267383732.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2026q2_consolidated.pdf,1H26,304502192.0,304502192.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2026q2_consolidated.pdf,1H26,99706248.0,99706248.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2026q2_consolidated.pdf,1H26,293710740.0,293710740.0,0.0,True
+BS: lines sum to 'Total current assets',fs_2026q2_consolidated.pdf,FY2025,395780787.0,395780787.0,0.0,True
+BS: lines sum to 'Total non-current assets',fs_2026q2_consolidated.pdf,FY2025,243837813.0,243837813.0,0.0,True
+BS: lines sum to 'Total current liabilities',fs_2026q2_consolidated.pdf,FY2025,209664989.0,209664989.0,0.0,True
+BS: lines sum to 'Total non-current liabilities',fs_2026q2_consolidated.pdf,FY2025,104564608.0,104564608.0,0.0,True
+BS: lines sum to 'Equity attributable to owners of the parent',fs_2026q2_consolidated.pdf,FY2025,268057976.0,268057976.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2026q2_consolidated.pdf,1H25,-22248950.0,-22248950.0,0.0,True
+CF: lines sum to 'Net cash flows (used in) from financing activities',fs_2026q2_consolidated.pdf,1H25,17193906.0,17193906.0,0.0,True
+CF: lines sum to 'Net cash flows used in investing activities',fs_2026q2_consolidated.pdf,1H26,-30282455.0,-30282455.0,0.0,True
+CF: lines sum to 'Net cash flows (used in) from financing activities',fs_2026q2_consolidated.pdf,1H26,-2619624.0,-2619624.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2026q2_consolidated.pdf,1H25,-49132511.0,-49132511.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2026q2_consolidated.pdf,1H25,2529313.0,2529313.0,0.0,True
+IS: lines sum to 'Profit for the period',fs_2026q2_consolidated.pdf,1H25,27377052.0,27377052.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2026q2_consolidated.pdf,1H26,-65281476.0,-65281476.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2026q2_consolidated.pdf,1H26,7105092.0,7105092.0,0.0,True
+IS: lines sum to 'Profit for the period',fs_2026q2_consolidated.pdf,1H26,51003600.0,51003600.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2026q2_consolidated.pdf,2Q25,-25380093.0,-25380093.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2026q2_consolidated.pdf,2Q25,902419.0,902419.0,0.0,True
+IS: lines sum to 'Profit for the period',fs_2026q2_consolidated.pdf,2Q25,15333730.0,15333730.0,0.0,True
+IS: lines sum to 'Total operating expenses',fs_2026q2_consolidated.pdf,2Q26,-34737908.0,-34737908.0,0.0,True
+IS: lines sum to 'Total non-operating income and expenses',fs_2026q2_consolidated.pdf,2Q26,4429572.0,4429572.0,0.0,True
+IS: lines sum to 'Profit for the period',fs_2026q2_consolidated.pdf,2Q26,27169051.0,27169051.0,0.0,True
+IS: revenue + COGS = gross profit,fs_2021_annual_consolidated.pdf,FY2021,90209.451,90209.45099999997,-2.9103830456733704e-11,True
+IS: gross profit + opex = EBIT,fs_2021_annual_consolidated.pdf,FY2021,31364.741,31364.741,0.0,True
+IS: EBIT + non-operating = PBT,fs_2021_annual_consolidated.pdf,FY2021,35627.547,35627.547,0.0,True
+IS: PBT + tax = net income,fs_2021_annual_consolidated.pdf,FY2021,28499.233,28499.233,0.0,True
+IS: parent + NCI = net income,fs_2021_annual_consolidated.pdf,FY2021,28499.233,28499.233,0.0,True
+CF: PBT in CF = PBT in IS,fs_2021_annual_consolidated.pdf,FY2021,35627.547,35627.547,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2021_annual_consolidated.pdf,FY2021,-8856.932,-8856.931999999997,3.637978807091713e-12,True
+CF: opening cash + change = closing cash,fs_2021_annual_consolidated.pdf,FY2021,49855.053,49855.053,0.0,True
+BS: total assets = total liabilities + equity,fs_2021_annual_consolidated.pdf,FY2021,365112.31,365112.31,0.0,True
+BS: total assets = current + non-current,fs_2021_annual_consolidated.pdf,FY2021,365112.31,365112.31,0.0,True
+BS: equity = parent + NCI,fs_2021_annual_consolidated.pdf,FY2021,186124.658,186124.658,0.0,True
+BS/CF: closing cash on CF = cash on BS,fs_2021_annual_consolidated.pdf,FY2021,49855.053,49855.053,0.0,True
+IS: revenue + COGS = gross profit,fs_2022_annual_consolidated.pdf,FY2022,110772.563,110772.56300000002,2.9103830456733704e-11,True
+IS: gross profit + opex = EBIT,fs_2022_annual_consolidated.pdf,FY2022,41438.824,41438.82399999999,-7.275957614183426e-12,True
+IS: EBIT + non-operating = PBT,fs_2022_annual_consolidated.pdf,FY2022,46065.298,46065.298,0.0,True
+IS: PBT + tax = net income,fs_2022_annual_consolidated.pdf,FY2022,36990.738,36990.738000000005,7.275957614183426e-12,True
+IS: parent + NCI = net income,fs_2022_annual_consolidated.pdf,FY2022,36990.738,36990.738,0.0,True
+CF: PBT in CF = PBT in IS,fs_2022_annual_consolidated.pdf,FY2022,46065.298,46065.298,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2022_annual_consolidated.pdf,FY2022,11691.783,11691.783000000003,3.637978807091713e-12,True
+CF: opening cash + change = closing cash,fs_2022_annual_consolidated.pdf,FY2022,61546.836,61546.835999999996,-7.275957614183426e-12,True
+BS: total assets = total liabilities + equity,fs_2022_annual_consolidated.pdf,FY2022,425873.806,425873.806,0.0,True
+BS: total assets = current + non-current,fs_2022_annual_consolidated.pdf,FY2022,425873.806,425873.806,0.0,True
+BS: equity = parent + NCI,fs_2022_annual_consolidated.pdf,FY2022,225367.185,225367.185,0.0,True
+BS/CF: closing cash on CF = cash on BS,fs_2022_annual_consolidated.pdf,FY2022,61546.836,61546.836,0.0,True
+IS: revenue + COGS = gross profit,fs_2023_annual_consolidated.pdf,FY2023,117213.028,117213.02799999999,-1.4551915228366852e-11,True
+IS: gross profit + opex = EBIT,fs_2023_annual_consolidated.pdf,FY2023,40949.837,40949.837,0.0,True
+IS: EBIT + non-operating = PBT,fs_2023_annual_consolidated.pdf,FY2023,48642.111,48642.111,0.0,True
+IS: PBT + tax = net income,fs_2023_annual_consolidated.pdf,FY2023,38880.367,38880.367,0.0,True
+IS: parent + NCI = net income,fs_2023_annual_consolidated.pdf,FY2023,38880.367,38880.367,0.0,True
+CF: PBT in CF = PBT in IS,fs_2023_annual_consolidated.pdf,FY2023,48642.111,48642.111,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2023_annual_consolidated.pdf,FY2023,25909.08,25909.08,0.0,True
+CF: opening cash + change = closing cash,fs_2023_annual_consolidated.pdf,FY2023,87455.916,87455.916,0.0,True
+BS: total assets = total liabilities + equity,fs_2023_annual_consolidated.pdf,FY2023,457746.578,457746.578,0.0,True
+BS: total assets = current + non-current,fs_2023_annual_consolidated.pdf,FY2023,457746.578,457746.578,0.0,True
+BS: equity = parent + NCI,fs_2023_annual_consolidated.pdf,FY2023,242735.493,242735.493,0.0,True
+BS/CF: closing cash on CF = cash on BS,fs_2023_annual_consolidated.pdf,FY2023,87455.916,87455.916,0.0,True
+IS: revenue + COGS = gross profit,fs_2024_annual_consolidated.pdf,FY2024,136580.174,136580.174,0.0,True
+IS: gross profit + opex = EBIT,fs_2024_annual_consolidated.pdf,FY2024,47651.768,47651.768,0.0,True
+IS: EBIT + non-operating = PBT,fs_2024_annual_consolidated.pdf,FY2024,51315.628,51315.628,0.0,True
+IS: PBT + tax = net income,fs_2024_annual_consolidated.pdf,FY2024,40391.1,40391.1,0.0,True
+IS: parent + NCI = net income,fs_2024_annual_consolidated.pdf,FY2024,40391.1,40391.1,0.0,True
+CF: PBT in CF = PBT in IS,fs_2024_annual_consolidated.pdf,FY2024,51315.628,51315.628,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2024_annual_consolidated.pdf,FY2024,30003.334,30003.33399999999,-7.275957614183426e-12,True
+CF: opening cash + change = closing cash,fs_2024_annual_consolidated.pdf,FY2024,117459.25,117459.25,0.0,True
+BS: total assets = total liabilities + equity,fs_2024_annual_consolidated.pdf,FY2024,531897.717,531897.717,0.0,True
+BS: total assets = current + non-current,fs_2024_annual_consolidated.pdf,FY2024,531897.717,531897.717,0.0,True
+BS: equity = parent + NCI,fs_2024_annual_consolidated.pdf,FY2024,279565.336,279565.336,0.0,True
+BS/CF: closing cash on CF = cash on BS,fs_2024_annual_consolidated.pdf,FY2024,117459.25,117459.25,0.0,True
+IS: revenue + COGS = gross profit,fs_2025_annual_consolidated.pdf,FY2025,190156.558,190156.55799999996,-2.9103830456733704e-11,True
+IS: gross profit + opex = EBIT,fs_2025_annual_consolidated.pdf,FY2025,83932.074,83932.074,0.0,True
+IS: EBIT + non-operating = PBT,fs_2025_annual_consolidated.pdf,FY2025,87865.996,87865.996,0.0,True
+IS: PBT + tax = net income,fs_2025_annual_consolidated.pdf,FY2025,67936.308,67936.308,0.0,True
+IS: parent + NCI = net income,fs_2025_annual_consolidated.pdf,FY2025,67936.308,67936.30799999999,-1.4551915228366852e-11,True
+CF: PBT in CF = PBT in IS,fs_2025_annual_consolidated.pdf,FY2025,87865.996,87865.996,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2025_annual_consolidated.pdf,FY2025,33712.925,33712.925,0.0,True
+CF: opening cash + change = closing cash,fs_2025_annual_consolidated.pdf,FY2025,151172.175,151172.175,0.0,True
+BS: total assets = total liabilities + equity,fs_2025_annual_consolidated.pdf,FY2025,639618.6,639618.6000000001,1.1641532182693481e-10,True
+BS: total assets = current + non-current,fs_2025_annual_consolidated.pdf,FY2025,639618.6,639618.6,0.0,True
+BS: equity = parent + NCI,fs_2025_annual_consolidated.pdf,FY2025,325389.003,325389.003,0.0,True
+BS/CF: closing cash on CF = cash on BS,fs_2025_annual_consolidated.pdf,FY2025,151172.175,151172.175,0.0,True
+IS: revenue + COGS = gross profit,fs_2026q1_consolidated.pdf,1Q25,37788.422,37788.422000000006,7.275957614183426e-12,True
+IS: gross profit + opex = EBIT,fs_2026q1_consolidated.pdf,1Q25,14036.004,14036.003999999997,-3.637978807091713e-12,True
+IS: EBIT + non-operating = PBT,fs_2026q1_consolidated.pdf,1Q25,15662.898,15662.898000000001,1.8189894035458565e-12,True
+IS: PBT + tax = net income,fs_2026q1_consolidated.pdf,1Q25,12043.322,12043.322,0.0,True
+IS: parent + NCI = net income,fs_2026q1_consolidated.pdf,1Q25,12043.322,12043.322,0.0,True
+CF: PBT in CF = PBT in IS,fs_2026q1_consolidated.pdf,1Q25,15662.898,15662.898,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2026q1_consolidated.pdf,1Q25,22831.846,22831.845999999998,-3.637978807091713e-12,True
+CF: opening cash + change = closing cash,fs_2026q1_consolidated.pdf,1Q25,140291.096,140291.096,0.0,True
+BS: total assets = total liabilities + equity,fs_2026q1_consolidated.pdf,1Q25,566568.673,566568.673,0.0,True
+BS: total assets = current + non-current,fs_2026q1_consolidated.pdf,1Q25,566568.673,566568.673,0.0,True
+BS: equity = parent + NCI,fs_2026q1_consolidated.pdf,1Q25,299469.498,299469.498,0.0,True
+BS/CF: closing cash on CF = cash on BS,fs_2026q1_consolidated.pdf,1Q25,140291.096,140291.096,0.0,True
+IS: revenue + COGS = gross profit,fs_2026q2_consolidated.pdf,2Q25,44048.863,44048.863,0.0,True
+IS: gross profit + opex = EBIT,fs_2026q2_consolidated.pdf,2Q25,18668.77,18668.769999999997,-3.637978807091713e-12,True
+IS: EBIT + non-operating = PBT,fs_2026q2_consolidated.pdf,2Q25,19571.189,19571.189000000002,3.637978807091713e-12,True
+IS: PBT + tax = net income,fs_2026q2_consolidated.pdf,2Q25,15333.73,15333.73,0.0,True
+IS: parent + NCI = net income,fs_2026q2_consolidated.pdf,2Q25,15333.73,15333.73,0.0,True
+CF: PBT in CF = PBT in IS,fs_2026q2_consolidated.pdf,2Q25,19571.189,19571.189,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2026q2_consolidated.pdf,2Q25,-763.128,-763.1280000000006,-5.684341886080801e-13,True
+CF: opening cash + change = closing cash,fs_2026q2_consolidated.pdf,2Q25,139527.968,139527.968,0.0,True
+IS: revenue + COGS = gross profit,fs_2026q2_consolidated.pdf,1H25,81837.285,81837.285,0.0,True
+IS: gross profit + opex = EBIT,fs_2026q2_consolidated.pdf,1H25,32704.774,32704.774000000005,3.637978807091713e-12,True
+IS: EBIT + non-operating = PBT,fs_2026q2_consolidated.pdf,1H25,35234.087,35234.087,0.0,True
+IS: PBT + tax = net income,fs_2026q2_consolidated.pdf,1H25,27377.052,27377.052,0.0,True
+IS: parent + NCI = net income,fs_2026q2_consolidated.pdf,1H25,27377.052,27377.052,0.0,True
+CF: PBT in CF = PBT in IS,fs_2026q2_consolidated.pdf,1H25,35234.087,35234.087,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2026q2_consolidated.pdf,1H25,22068.718,22068.717999999997,-3.637978807091713e-12,True
+CF: opening cash + change = closing cash,fs_2026q2_consolidated.pdf,1H25,139527.968,139527.968,0.0,True
+BS: total assets = total liabilities + equity,fs_2026q2_consolidated.pdf,1H25,546418.916,546418.916,0.0,True
+BS: total assets = current + non-current,fs_2026q2_consolidated.pdf,1H25,546418.916,546418.916,0.0,True
+BS: equity = parent + NCI,fs_2026q2_consolidated.pdf,1H25,260897.863,260897.863,0.0,True
+BS/CF: closing cash on CF = cash on BS,fs_2026q2_consolidated.pdf,1H25,139527.968,139527.968,0.0,True
+IS: revenue + COGS = gross profit,fs_2026q1_consolidated.pdf,1Q26,58960.871,58960.871,0.0,True
+IS: gross profit + opex = EBIT,fs_2026q1_consolidated.pdf,1Q26,28417.303,28417.303,0.0,True
+IS: EBIT + non-operating = PBT,fs_2026q1_consolidated.pdf,1Q26,31092.823,31092.823,0.0,True
+IS: PBT + tax = net income,fs_2026q1_consolidated.pdf,1Q26,23834.549,23834.549,0.0,True
+IS: parent + NCI = net income,fs_2026q1_consolidated.pdf,1Q26,23834.549,23834.549,0.0,True
+CF: PBT in CF = PBT in IS,fs_2026q1_consolidated.pdf,1Q26,31092.823,31092.823,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2026q1_consolidated.pdf,1Q26,9761.921,9761.920999999998,-1.8189894035458565e-12,True
+CF: opening cash + change = closing cash,fs_2026q1_consolidated.pdf,1Q26,160934.096,160934.096,0.0,True
+BS: total assets = total liabilities + equity,fs_2026q1_consolidated.pdf,1Q26,684173.975,684173.975,0.0,True
+BS: total assets = current + non-current,fs_2026q1_consolidated.pdf,1Q26,684173.975,684173.975,0.0,True
+BS: equity = parent + NCI,fs_2026q1_consolidated.pdf,1Q26,357259.207,357259.207,0.0,True
+BS/CF: closing cash on CF = cash on BS,fs_2026q1_consolidated.pdf,1Q26,160934.096,160934.096,0.0,True
+IS: revenue + COGS = gross profit,fs_2026q2_consolidated.pdf,2Q26,65307.95,65307.94999999998,-1.4551915228366852e-11,True
+IS: gross profit + opex = EBIT,fs_2026q2_consolidated.pdf,2Q26,30570.042,30570.041999999994,-7.275957614183426e-12,True
+IS: EBIT + non-operating = PBT,fs_2026q2_consolidated.pdf,2Q26,34999.614,34999.614,0.0,True
+IS: PBT + tax = net income,fs_2026q2_consolidated.pdf,2Q26,27169.051,27169.051,0.0,True
+IS: parent + NCI = net income,fs_2026q2_consolidated.pdf,2Q26,27169.051,27169.051,0.0,True
+CF: PBT in CF = PBT in IS,fs_2026q2_consolidated.pdf,2Q26,34999.614,34999.614,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2026q2_consolidated.pdf,2Q26,21416.108,21416.108,0.0,True
+CF: opening cash + change = closing cash,fs_2026q2_consolidated.pdf,2Q26,182350.204,182350.204,0.0,True
+IS: revenue + COGS = gross profit,fs_2026q2_consolidated.pdf,1H26,124268.821,124268.82100000003,2.9103830456733704e-11,True
+IS: gross profit + opex = EBIT,fs_2026q2_consolidated.pdf,1H26,58987.345,58987.344999999994,-7.275957614183426e-12,True
+IS: EBIT + non-operating = PBT,fs_2026q2_consolidated.pdf,1H26,66092.437,66092.437,0.0,True
+IS: PBT + tax = net income,fs_2026q2_consolidated.pdf,1H26,51003.6,51003.600000000006,7.275957614183426e-12,True
+IS: parent + NCI = net income,fs_2026q2_consolidated.pdf,1H26,51003.6,51003.6,0.0,True
+CF: PBT in CF = PBT in IS,fs_2026q2_consolidated.pdf,1H26,66092.437,66092.437,0.0,True
+CF: CFO + CFI + CFF + FX = change in cash,fs_2026q2_consolidated.pdf,1H26,31178.029,31178.029000000002,3.637978807091713e-12,True
+CF: opening cash + change = closing cash,fs_2026q2_consolidated.pdf,1H26,182350.204,182350.204,0.0,True
+BS: total assets = total liabilities + equity,fs_2026q2_consolidated.pdf,1H26,754433.332,754433.3319999999,-1.1641532182693481e-10,True
+BS: total assets = current + non-current,fs_2026q2_consolidated.pdf,1H26,754433.332,754433.3319999999,-1.1641532182693481e-10,True
+BS: equity = parent + NCI,fs_2026q2_consolidated.pdf,1H26,350224.892,350224.892,0.0,True
+BS/CF: closing cash on CF = cash on BS,fs_2026q2_consolidated.pdf,1H26,182350.204,182350.204,0.0,True
+IS: 1Q25 + 2Q25 = 1H25 (revenue),fs_2026q2_consolidated.pdf,1H25,242954.492,242954.492,0.0,True
+IS: 1Q25 + 2Q25 = 1H25 (gross_profit),fs_2026q2_consolidated.pdf,1H25,81837.285,81837.285,0.0,True
+IS: 1Q25 + 2Q25 = 1H25 (ebit),fs_2026q2_consolidated.pdf,1H25,32704.774,32704.774,0.0,True
+IS: 1Q25 + 2Q25 = 1H25 (net_income),fs_2026q2_consolidated.pdf,1H25,27377.052,27377.052,0.0,True
+IS: 1Q25 + 2Q25 = 1H25 (ni_parent),fs_2026q2_consolidated.pdf,1H25,24178.986,24178.985999999997,-3.637978807091713e-12,True
+IS: 1Q26 + 2Q26 = 1H26 (revenue),fs_2026q2_consolidated.pdf,1H26,342608.732,342608.73199999996,-5.820766091346741e-11,True
+IS: 1Q26 + 2Q26 = 1H26 (gross_profit),fs_2026q2_consolidated.pdf,1H26,124268.821,124268.821,0.0,True
+IS: 1Q26 + 2Q26 = 1H26 (ebit),fs_2026q2_consolidated.pdf,1H26,58987.345,58987.345,0.0,True
+IS: 1Q26 + 2Q26 = 1H26 (net_income),fs_2026q2_consolidated.pdf,1H26,51003.6,51003.6,0.0,True
+IS: 1Q26 + 2Q26 = 1H26 (ni_parent),fs_2026q2_consolidated.pdf,1H26,45691.231,45691.231,0.0,True
+CF: opening cash = prior year closing cash,fs_2022_annual_consolidated.pdf,FY2022,49855.053,49855.053,0.0,True
+CF: opening cash = prior year closing cash,fs_2023_annual_consolidated.pdf,FY2023,61546.836,61546.836,0.0,True
+CF: opening cash = prior year closing cash,fs_2024_annual_consolidated.pdf,FY2024,87455.916,87455.916,0.0,True
+CF: opening cash = prior year closing cash,fs_2025_annual_consolidated.pdf,FY2025,117459.25,117459.25,0.0,True
+Segments: four segments sum to total (op_profit),fs_2021_annual_consolidated.pdf,FY2020,31425804.0,31425804.0,0.0,True
+Segments: four segments sum to total (revenue),fs_2021_annual_consolidated.pdf,FY2020,282383375.0,282383375.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2021_annual_consolidated.pdf,FY2021,31364741.0,31364741.0,0.0,True
+Segments: segment profit total = EBIT (fs_2021_annual_consolidated.pdf),fs_2021_annual_consolidated.pdf,FY2021,31364.741,31364.741,0.0,True
+Segments: four segments sum to total (revenue),fs_2021_annual_consolidated.pdf,FY2021,314277970.0,314277970.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2022_annual_consolidated.pdf,FY2021,31364741.0,31364741.0,0.0,True
+Segments: segment profit total = EBIT (fs_2022_annual_consolidated.pdf),fs_2021_annual_consolidated.pdf,FY2021,31364.741,31364.741,0.0,True
+Segments: four segments sum to total (revenue),fs_2022_annual_consolidated.pdf,FY2021,314277970.0,314277970.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2022_annual_consolidated.pdf,FY2022,41438824.0,41438824.0,0.0,True
+Segments: segment profit total = EBIT (fs_2022_annual_consolidated.pdf),fs_2022_annual_consolidated.pdf,FY2022,41438.824,41438.824,0.0,True
+Segments: four segments sum to total (revenue),fs_2022_annual_consolidated.pdf,FY2022,383965328.0,383965328.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2023_annual_consolidated.pdf,FY2022,41438824.0,41438824.0,0.0,True
+Segments: segment profit total = EBIT (fs_2023_annual_consolidated.pdf),fs_2022_annual_consolidated.pdf,FY2022,41438.824,41438.824,0.0,True
+Segments: four segments sum to total (revenue),fs_2023_annual_consolidated.pdf,FY2022,383979073.0,383979073.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2023_annual_consolidated.pdf,FY2023,40949837.0,40949837.0,0.0,True
+Segments: segment profit total = EBIT (fs_2023_annual_consolidated.pdf),fs_2023_annual_consolidated.pdf,FY2023,40949.837,40949.837,0.0,True
+Segments: four segments sum to total (revenue),fs_2023_annual_consolidated.pdf,FY2023,401031833.0,401031833.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2024_annual_consolidated.pdf,FY2023,40949837.0,40949837.0,0.0,True
+Segments: segment profit total = EBIT (fs_2024_annual_consolidated.pdf),fs_2023_annual_consolidated.pdf,FY2023,40949.837,40949.837,0.0,True
+Segments: four segments sum to total (revenue),fs_2024_annual_consolidated.pdf,FY2023,400750615.0,400750615.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2024_annual_consolidated.pdf,FY2024,47651768.0,47651768.0,0.0,True
+Segments: segment profit total = EBIT (fs_2024_annual_consolidated.pdf),fs_2024_annual_consolidated.pdf,FY2024,47651.768,47651.768,0.0,True
+Segments: four segments sum to total (revenue),fs_2024_annual_consolidated.pdf,FY2024,420661018.0,420661018.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2025_annual_consolidated.pdf,FY2024,47651768.0,47651768.0,0.0,True
+Segments: segment profit total = EBIT (fs_2025_annual_consolidated.pdf),fs_2024_annual_consolidated.pdf,FY2024,47651.768,47651.768,0.0,True
+Segments: four segments sum to total (revenue),fs_2025_annual_consolidated.pdf,FY2024,420251042.0,420251042.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2025_annual_consolidated.pdf,FY2025,83932074.0,83932074.0,0.0,True
+Segments: segment profit total = EBIT (fs_2025_annual_consolidated.pdf),fs_2025_annual_consolidated.pdf,FY2025,83932.074,83932.074,0.0,True
+Segments: four segments sum to total (revenue),fs_2025_annual_consolidated.pdf,FY2025,553981277.0,553981277.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2026q1_consolidated.pdf,1Q25,14036004.0,14036004.0,0.0,True
+Segments: segment profit total = EBIT (fs_2026q1_consolidated.pdf),fs_2026q1_consolidated.pdf,1Q25,14036.004,14036.004,0.0,True
+Segments: four segments sum to total (revenue),fs_2026q1_consolidated.pdf,1Q25,118801047.0,118801047.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2026q1_consolidated.pdf,1Q26,28417303.0,28417303.0,0.0,True
+Segments: segment profit total = EBIT (fs_2026q1_consolidated.pdf),fs_2026q1_consolidated.pdf,1Q26,28417.303,28417.303,0.0,True
+Segments: four segments sum to total (revenue),fs_2026q1_consolidated.pdf,1Q26,159102105.0,159102105.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2026q2_consolidated.pdf,1H25,32704774.0,32704774.0,0.0,True
+Segments: segment profit total = EBIT (fs_2026q2_consolidated.pdf),fs_2026q2_consolidated.pdf,1H25,32704.774,32704.774,0.0,True
+Segments: four segments sum to total (revenue),fs_2026q2_consolidated.pdf,1H25,242643655.0,242643655.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2026q2_consolidated.pdf,1H26,58987345.0,58987345.0,0.0,True
+Segments: segment profit total = EBIT (fs_2026q2_consolidated.pdf),fs_2026q2_consolidated.pdf,1H26,58987.345,58987.345,0.0,True
+Segments: four segments sum to total (revenue),fs_2026q2_consolidated.pdf,1H26,342092041.0,342092041.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2026q2_consolidated.pdf,2Q25,18668770.0,18668770.0,0.0,True
+Segments: segment profit total = EBIT (fs_2026q2_consolidated.pdf),fs_2026q2_consolidated.pdf,2Q25,18668.77,18668.77,0.0,True
+Segments: four segments sum to total (revenue),fs_2026q2_consolidated.pdf,2Q25,123842608.0,123842608.0,0.0,True
+Segments: four segments sum to total (op_profit),fs_2026q2_consolidated.pdf,2Q26,30570042.0,30570042.0,0.0,True
+Segments: segment profit total = EBIT (fs_2026q2_consolidated.pdf),fs_2026q2_consolidated.pdf,2Q26,30570.042,30570.042,0.0,True
+Segments: four segments sum to total (revenue),fs_2026q2_consolidated.pdf,2Q26,182989936.0,182989936.0,0.0,True
+Segments: FY2023 old-basis PE = new-basis PE + Mobility (revenue),fs_2023 vs fs_2024,FY2023,248261435.0,248261435.0,0.0,True
+Restatement: BS 'Current assets Cash and cash equivalents' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,49855053.0,49855053.0,0.0,True
+Restatement: BS 'Current assets Cash and cash equivalents' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,61546836.0,61546836.0,0.0,True
+Restatement: BS 'Current assets Cash and cash equivalents' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,87455916.0,87455916.0,0.0,True
+Restatement: BS 'Current assets Cash and cash equivalents' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,117459250.0,117459250.0,0.0,True
+Restatement: BS 'Current assets Cash and cash equivalents' same in all reports,fs_2025_annual_consolidated.pdf vs fs_2026q1_consolidated.pdf vs fs_2026q2_consolidated.pdf,FY2025,151172175.0,151172175.0,0.0,True
+Restatement: BS 'Total assets' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,365112310.0,365112310.0,0.0,True
+Restatement: BS 'Total assets' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,425873806.0,425873806.0,0.0,True
+Restatement: BS 'Total assets' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,457746578.0,457746578.0,0.0,True
+Restatement: BS 'Total assets' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,531897717.0,531897717.0,0.0,True
+Restatement: BS 'Total assets' same in all reports,fs_2025_annual_consolidated.pdf vs fs_2026q1_consolidated.pdf vs fs_2026q2_consolidated.pdf,FY2025,639618600.0,639618600.0,0.0,True
+Restatement: BS 'Total current assets' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,196878194.0,196878194.0,0.0,True
+Restatement: BS 'Total current assets' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,240450466.0,240450466.0,0.0,True
+Restatement: BS 'Total current assets' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,259958184.0,259958184.0,0.0,True
+Restatement: BS 'Total current assets' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,310924848.0,310924848.0,0.0,True
+Restatement: BS 'Total current assets' same in all reports,fs_2025_annual_consolidated.pdf vs fs_2026q1_consolidated.pdf vs fs_2026q2_consolidated.pdf,FY2025,395780787.0,395780787.0,0.0,True
+Restatement: BS 'Total current liabilities' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,108169477.0,108169477.0,0.0,True
+Restatement: BS 'Total current liabilities' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,125013428.0,125013428.0,0.0,True
+Restatement: BS 'Total current liabilities' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,126084553.0,126084553.0,0.0,True
+Restatement: BS 'Total current liabilities' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,152283126.0,152283126.0,0.0,True
+Restatement: BS 'Total current liabilities' same in all reports,fs_2025_annual_consolidated.pdf vs fs_2026q1_consolidated.pdf vs fs_2026q2_consolidated.pdf,FY2025,209664989.0,209664989.0,0.0,True
+Restatement: BS 'Total equity' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,186124658.0,186124658.0,0.0,True
+Restatement: BS 'Total equity' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,225367185.0,225367185.0,0.0,True
+Restatement: BS 'Total equity' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,242735493.0,242735493.0,0.0,True
+Restatement: BS 'Total equity' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,279565336.0,279565336.0,0.0,True
+Restatement: BS 'Total equity' same in all reports,fs_2025_annual_consolidated.pdf vs fs_2026q1_consolidated.pdf vs fs_2026q2_consolidated.pdf,FY2025,325389003.0,325389003.0,0.0,True
+Restatement: BS 'Total liabilities' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,178987652.0,178987652.0,0.0,True
+Restatement: BS 'Total liabilities' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,200506621.0,200506621.0,0.0,True
+Restatement: BS 'Total liabilities' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,215011085.0,215011085.0,0.0,True
+Restatement: BS 'Total liabilities' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,252332381.0,252332381.0,0.0,True
+Restatement: BS 'Total liabilities' same in all reports,fs_2025_annual_consolidated.pdf vs fs_2026q1_consolidated.pdf vs fs_2026q2_consolidated.pdf,FY2025,314229597.0,314229597.0,0.0,True
+Restatement: BS 'Total liabilities and equity' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,457746578.0,457746578.0,0.0,True
+Restatement: BS 'Total liabilities and equity' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,531897717.0,531897717.0,0.0,True
+Restatement: BS 'Total liabilities and equity' same in all reports,fs_2025_annual_consolidated.pdf vs fs_2026q1_consolidated.pdf vs fs_2026q2_consolidated.pdf,FY2025,639618600.0,639618600.0,0.0,True
+Restatement: BS 'Total non-current assets' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,168234116.0,168234116.0,0.0,True
+Restatement: BS 'Total non-current assets' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,185423340.0,185423340.0,0.0,True
+Restatement: BS 'Total non-current assets' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,197788394.0,197788394.0,0.0,True
+Restatement: BS 'Total non-current assets' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,220972869.0,220972869.0,0.0,True
+Restatement: BS 'Total non-current assets' same in all reports,fs_2025_annual_consolidated.pdf vs fs_2026q1_consolidated.pdf vs fs_2026q2_consolidated.pdf,FY2025,243837813.0,243837813.0,0.0,True
+Restatement: BS 'Total non-current liabilities' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,70818175.0,70818175.0,0.0,True
+Restatement: BS 'Total non-current liabilities' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,75493193.0,75493193.0,0.0,True
+Restatement: BS 'Total non-current liabilities' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,88926532.0,88926532.0,0.0,True
+Restatement: BS 'Total non-current liabilities' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,100049255.0,100049255.0,0.0,True
+Restatement: BS 'Total non-current liabilities' same in all reports,fs_2025_annual_consolidated.pdf vs fs_2026q1_consolidated.pdf vs fs_2026q2_consolidated.pdf,FY2025,104564608.0,104564608.0,0.0,True
+Restatement: CF 'Net cash flows from operating activities' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,28319366.0,28319366.0,0.0,True
+Restatement: CF 'Net cash flows from operating activities' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,46529108.0,46529108.0,0.0,True
+Restatement: CF 'Net cash flows from operating activities' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,71086413.0,71086413.0,0.0,True
+Restatement: CF 'Net cash flows from operating activities' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,72894957.0,72894957.0,0.0,True
+Restatement: CF 'Net cash flows used in financing activities' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,-8336860.0,-8336860.0,0.0,True
+Restatement: CF 'Net cash flows used in financing activities' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,-19739172.0,-19739172.0,0.0,True
+Restatement: CF 'Net cash flows used in financing activities' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,-10478062.0,-10478062.0,0.0,True
+Restatement: CF 'Net cash flows used in financing activities' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,-11117582.0,-11117582.0,0.0,True
+Restatement: CF 'Net cash flows used in investing activities' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,-26481259.0,-26481259.0,0.0,True
+Restatement: CF 'Net cash flows used in investing activities' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,-24719243.0,-24719243.0,0.0,True
+Restatement: CF 'Net cash flows used in investing activities' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,-33501693.0,-33501693.0,0.0,True
+Restatement: CF 'Net cash flows used in investing activities' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,-40360023.0,-40360023.0,0.0,True
+Restatement: CF 'Net increase in cash and cash equivalents' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,25909080.0,25909080.0,0.0,True
+Restatement: IS 'Operating revenue' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,314670796.0,314670796.0,0.0,True
+Restatement: IS 'Operating revenue' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,384443308.0,384443308.0,0.0,True
+Restatement: IS 'Operating revenue' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,401226501.0,401226501.0,0.0,True
+Restatement: IS 'Operating revenue' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,421147557.0,421147557.0,0.0,True
+Restatement: IS 'Profit for the year' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,28499233.0,28499233.0,0.0,True
+Restatement: IS 'Profit for the year' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,36990738.0,36990738.0,0.0,True
+Restatement: IS 'Profit for the year' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,38880367.0,38880367.0,0.0,True
+Restatement: IS 'Profit for the year' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,40391100.0,40391100.0,0.0,True
+Restatement: IS 'Total comprehensive income for the year' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,23540727.0,23540727.0,0.0,True
+Restatement: IS 'Total comprehensive income for the year' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,54151664.0,54151664.0,0.0,True
+Restatement: IS 'Total comprehensive income for the year' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,38210967.0,38210967.0,0.0,True
+Restatement: IS 'Total comprehensive income for the year' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,55041551.0,55041551.0,0.0,True
+Restatement: IS 'Total non-operating income and expenses' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,4262806.0,4262806.0,0.0,True
+Restatement: IS 'Total non-operating income and expenses' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,4626474.0,4626474.0,0.0,True
+Restatement: IS 'Total non-operating income and expenses' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,7692274.0,7692274.0,0.0,True
+Restatement: IS 'Total non-operating income and expenses' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,3663860.0,3663860.0,0.0,True
+Restatement: IS 'Total operating expenses' same in all reports,fs_2021_annual_consolidated.pdf vs fs_2022_annual_consolidated.pdf,FY2021,-58844710.0,-58844710.0,0.0,True
+Restatement: IS 'Total operating expenses' same in all reports,fs_2022_annual_consolidated.pdf vs fs_2023_annual_consolidated.pdf,FY2022,-69333739.0,-69333739.0,0.0,True
+Restatement: IS 'Total operating expenses' same in all reports,fs_2023_annual_consolidated.pdf vs fs_2024_annual_consolidated.pdf,FY2023,-76263191.0,-76263191.0,0.0,True
+Restatement: IS 'Total operating expenses' same in all reports,fs_2024_annual_consolidated.pdf vs fs_2025_annual_consolidated.pdf,FY2024,-88928406.0,-88928406.0,0.0,True
+Monthly: three monthly releases sum to quarterly revenue,mr_*.pdf,1Q25,118919.406,118920.0,0.5939999999973224,True
+Monthly: three monthly releases sum to quarterly revenue,mr_*.pdf,2Q25,124035.086,124035.0,-0.08599999999569263,True
+Monthly: three monthly releases sum to quarterly revenue,mr_*.pdf,1Q26,159352.652,159352.0,-0.6520000000018626,True
+Monthly: three monthly releases sum to quarterly revenue,mr_*.pdf,2Q26,183256.08,183257.0,0.9200000000128057,True
