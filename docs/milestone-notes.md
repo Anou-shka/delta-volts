@@ -48,16 +48,19 @@ FY2025 Infrastructure revenue grew 82% to NT$182.0bn, and its segment profit ros
 2. "Delta says its FY2025 EBITDA was NT$117.9bn, but your model says NT$111.8bn. Which is right for valuation?"
 3. "How do you know your extracted historicals are correct?"
 
-### Open items for you (Anoushka)
+### Decisions taken after M1 (see `docs/decisions.md`)
 
-- **Review the 10-figure sample** in `docs/m1-review-sample.md`. Tick each box against the PDF page.
-- **Two `TODO-SOURCE` figures:** the Taipei Times' "AI power supplies >20% of 2025 revenue" and "AI cooling ~9%". Neither is in Delta's 4Q25 slides, and Delta published no 4Q25 transcript. Primary-source figures we do have:
-  - liquid cooling was about 10% of FY2025 revenue;
-  - AI-related products will be over 25% of FY2026 revenue;
-  - data-centre business was over half of 1H26 revenue (all from the 2Q26 transcript, pp.2 and 12).
+- **D1:** the AI line is anchored only on Delta's own disclosures (2Q26 transcript):
+  - AI-related products >25% of FY2026 revenue;
+  - liquid cooling ~10% of FY2025 revenue and >12% of FY2026;
+  - data-centre business >50% of 1H26 revenue.
 
-  This matters for M3: the AI line will be anchored on these figures unless you find a primary source for the 20%/9% split.
-- **Base period decision:** I've assumed Q2 2026 as the base, with Q3 monthly revenue as a cross-check. Q3 results are due around 29 Oct, after the planned finish. Confirm, or tell me to wait and update.
+  The press split (AI power >20%, AI cooling ~9%) stays `TODO-SOURCE` and isn't used.
+- **D2:** wait for Q3 2026 results (expected ~29–30 Oct 2026) before locking the base period. It will then move from 1H26 to 9M26.
+
+### Still open
+
+- Review the 10-figure sample in `docs/m1-review-sample.md`.
 - **Management statements worth knowing for M3** (2Q26 transcript):
   - FY2026 capex about NT$70bn, with NT$27.5bn already spent in 1H.
   - New AI equipment has been depreciated over 3 years since about April 2026 (it was 3–5 years). This raises D&A and lowers reported margins.
