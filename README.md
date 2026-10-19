@@ -10,8 +10,6 @@ By **Anoushka**: CS + Business (NTU), CFA Level II candidate.
 
 > *Student research for educational purposes only. Not investment advice.*
 
-**Companion project:** [`verity/`](verity/README.md) is an agentic equity analyst with a fact-checker. It covers Delta's US-listed peers (Vertiv, Eaton, nVent, Trane and others) from SEC XBRL filings. An [AI governance memo](verity/docs/governance-memo.md) maps it to the MAS FEAT principles and the MindForge AI Risk Management Handbook.
-
 ---
 
 ## Why this project
@@ -144,7 +142,6 @@ docs/
   milestone-notes.md       per-milestone summary, modelling choices, interview questions
   m1-review-sample.md      10 figures for manual verification
 tests/                     extraction and Excel model tests
-verity/                    companion project: agentic analyst + fact-checker on US peers (own README)
 ```
 
 ## Sources

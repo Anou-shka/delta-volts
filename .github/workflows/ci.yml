@@ -16,19 +16,3 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-calc-nogui
       - name: Extraction tie-outs and Excel model checks
         run: make test
-  verity:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: verity
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-      - run: pip install -r requirements.txt
-      - name: Rebuild metrics offline from the committed cache
-        run: make offline
-      - name: XBRL mapping and derived-metric tests
-        run: make test
