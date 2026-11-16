@@ -1,0 +1,121 @@
+key,section,label,unit,scenario,FY2026,FY2027,FY2028,FY2029,FY2030,rationale
+q4_revenue,FY2026 calibration,4Q26E group revenue,ntd_m,Bear,200000,,,,,[ANALYST TO REVIEW] Mgmt: 4Q26 revenue to exceed 3Q26 (197.1bn); Oct-26 actual 74.7bn. Bear = barely above 3Q
+q4_revenue,FY2026 calibration,4Q26E group revenue,ntd_m,Base,218000,,,,,[ANALYST TO REVIEW] Mgmt: 4Q26 revenue to exceed 3Q26 (197.1bn); Oct-26 actual 74.7bn. Base = Oct + ~71.7bn/month Nov-Dec
+q4_revenue,FY2026 calibration,4Q26E group revenue,ntd_m,Bull,228000,,,,,[ANALYST TO REVIEW] Mgmt: 4Q26 revenue to exceed 3Q26 (197.1bn); Oct-26 actual 74.7bn. Bull = Oct run-rate held plus growth
+ai_power_share,AI data-centre revenue,AI power solutions % of FY2026E revenue,pct,Bear,25,,,,,Management disclosure: ~25% of revenue is AI power-related solutions (3Q26 transcript p.7)
+ai_power_share,AI data-centre revenue,AI power solutions % of FY2026E revenue,pct,Base,25,,,,,Management disclosure: ~25% of revenue is AI power-related solutions (3Q26 transcript p.7)
+ai_power_share,AI data-centre revenue,AI power solutions % of FY2026E revenue,pct,Bull,25,,,,,Management disclosure: ~25% of revenue is AI power-related solutions (3Q26 transcript p.7)
+ai_cooling_share,AI data-centre revenue,Liquid cooling % of FY2026E revenue,pct,Bear,13,,,,,Management disclosure: ~13% of 3Q26 revenue (NT$25bn); similar share for FY2026 (3Q26 transcript p.7)
+ai_cooling_share,AI data-centre revenue,Liquid cooling % of FY2026E revenue,pct,Base,13,,,,,Management disclosure: ~13% of 3Q26 revenue (NT$25bn); similar share for FY2026 (3Q26 transcript p.7)
+ai_cooling_share,AI data-centre revenue,Liquid cooling % of FY2026E revenue,pct,Bull,13,,,,,Management disclosure: ~13% of 3Q26 revenue (NT$25bn); similar share for FY2026 (3Q26 transcript p.7)
+ai_other_share,AI data-centre revenue,Other AI data-centre % of FY2026E revenue,pct,Bear,12,,,,,Derived: AI data-centre total ~50% (3Q26 transcript p.7) less power 25% less cooling 13%
+ai_other_share,AI data-centre revenue,Other AI data-centre % of FY2026E revenue,pct,Base,12,,,,,Derived: AI data-centre total ~50% (3Q26 transcript p.7) less power 25% less cooling 13%
+ai_other_share,AI data-centre revenue,Other AI data-centre % of FY2026E revenue,pct,Bull,12,,,,,Derived: AI data-centre total ~50% (3Q26 transcript p.7) less power 25% less cooling 13%
+dc_capex_growth,AI data-centre revenue,Hyperscaler / AI data-centre capex growth,pct,Bear,,15,-5,0,3,[ANALYST TO REVIEW] Digestion after 2027: capex flat-to-down. Mgmt quotes big-4 CSP capex US$700-800bn (2026) to >US$1tn (2027)
+dc_capex_growth,AI data-centre revenue,Hyperscaler / AI data-centre capex growth,pct,Base,,30,15,8,5,[ANALYST TO REVIEW] 2027 = midpoint of mgmt-quoted US$750bn to ~US$1tn (+33%) haircut to 30%; then decelerating
+dc_capex_growth,AI data-centre revenue,Hyperscaler / AI data-centre capex growth,pct,Bull,,40,25,15,10,[ANALYST TO REVIEW] Capex keeps compounding as AI revenue (e.g. model labs) scales; mgmt sees investment robust through 2030
+content_power,AI data-centre revenue,Delta content/share gain: AI power,pct,Bear,,0,0,0,0,[ANALYST TO REVIEW] No gain: competition (Lite-On etc.) offsets higher power per rack
+content_power,AI data-centre revenue,Delta content/share gain: AI power,pct,Base,,5,5,5,5,[ANALYST TO REVIEW] Higher power per rack and HVDC (+/-400V and 800V; volume from 2027) lift content per dollar of capex
+content_power,AI data-centre revenue,Delta content/share gain: AI power,pct,Bull,,10,10,8,8,[ANALYST TO REVIEW] HVDC adoption faster; Delta keeps leading share in 110kW-class power shelves
+content_cooling,AI data-centre revenue,Delta content/share gain: liquid cooling,pct,Bear,,0,0,0,0,[ANALYST TO REVIEW] Liquid-to-liquid shift brings new competitors; share flat
+content_cooling,AI data-centre revenue,Delta content/share gain: liquid cooling,pct,Base,,10,10,8,6,[ANALYST TO REVIEW] Liquid cooling penetration rising (13% of revenue in 2026 from ~10% in 2025)
+content_cooling,AI data-centre revenue,Delta content/share gain: liquid cooling,pct,Bull,,15,15,12,10,[ANALYST TO REVIEW] Faster liquid-to-liquid adoption with Delta CDUs
+content_other,AI data-centre revenue,Delta content/share gain: other AI data-centre,pct,Bear,,-3,-3,-3,-3,[ANALYST TO REVIEW] Infrastructure systems (UPS etc.) lose share
+content_other,AI data-centre revenue,Delta content/share gain: other AI data-centre,pct,Base,,3,3,3,3,[ANALYST TO REVIEW] Solid-state transformers and energy systems add modest content
+content_other,AI data-centre revenue,Delta content/share gain: other AI data-centre,pct,Bull,,8,8,6,6,[ANALYST TO REVIEW] SST and fuel cells (SOFC mass production 2027) scale
+alloc_power_pe,AI data-centre revenue,Share of AI power booked in Power Electronics,pct,Bear,85,,,,,[ANALYST TO REVIEW] Not disclosed. Power supplies sit in PSBG (Power Electronics); data-centre power systems in ICTBG (Infrastructure)
+alloc_power_pe,AI data-centre revenue,Share of AI power booked in Power Electronics,pct,Base,85,,,,,[ANALYST TO REVIEW] Not disclosed. Power supplies sit in PSBG (Power Electronics); data-centre power systems in ICTBG (Infrastructure)
+alloc_power_pe,AI data-centre revenue,Share of AI power booked in Power Electronics,pct,Bull,85,,,,,[ANALYST TO REVIEW] Not disclosed. Power supplies sit in PSBG (Power Electronics); data-centre power systems in ICTBG (Infrastructure)
+alloc_cooling_pe,AI data-centre revenue,Share of liquid cooling booked in Power Electronics,pct,Bear,40,,,,,[ANALYST TO REVIEW] Not disclosed. Mgmt: cooling components in Power Electronics (FMBG); systems in Infrastructure (2Q26 transcript p.2)
+alloc_cooling_pe,AI data-centre revenue,Share of liquid cooling booked in Power Electronics,pct,Base,40,,,,,[ANALYST TO REVIEW] Not disclosed. Mgmt: cooling components in Power Electronics (FMBG); systems in Infrastructure (2Q26 transcript p.2)
+alloc_cooling_pe,AI data-centre revenue,Share of liquid cooling booked in Power Electronics,pct,Bull,40,,,,,[ANALYST TO REVIEW] Not disclosed. Mgmt: cooling components in Power Electronics (FMBG); systems in Infrastructure (2Q26 transcript p.2)
+alloc_other_pe,AI data-centre revenue,Share of other AI data-centre booked in Power Electronics,pct,Bear,30,,,,,[ANALYST TO REVIEW] Not disclosed. Mostly ICT infrastructure systems (Infrastructure); components in Power Electronics
+alloc_other_pe,AI data-centre revenue,Share of other AI data-centre booked in Power Electronics,pct,Base,30,,,,,[ANALYST TO REVIEW] Not disclosed. Mostly ICT infrastructure systems (Infrastructure); components in Power Electronics
+alloc_other_pe,AI data-centre revenue,Share of other AI data-centre booked in Power Electronics,pct,Bull,30,,,,,[ANALYST TO REVIEW] Not disclosed. Mostly ICT infrastructure systems (Infrastructure); components in Power Electronics
+g_pe_nonai,Non-AI revenue,Power Electronics excl. AI: growth,pct,Bear,,0,0,0,0,[ANALYST TO REVIEW] Consumer/industrial power and components flat
+g_pe_nonai,Non-AI revenue,Power Electronics excl. AI: growth,pct,Base,,4,4,4,4,[ANALYST TO REVIEW] Roughly nominal electronics demand growth
+g_pe_nonai,Non-AI revenue,Power Electronics excl. AI: growth,pct,Bull,,7,7,6,6,[ANALYST TO REVIEW] Industrial and automotive components recover
+g_infra_nonai,Non-AI revenue,Infrastructure excl. AI: growth,pct,Bear,,1,1,1,1,[ANALYST TO REVIEW] Energy storage and telecom power soft
+g_infra_nonai,Non-AI revenue,Infrastructure excl. AI: growth,pct,Base,,6,6,6,6,[ANALYST TO REVIEW] Energy infrastructure (microgrids; ESS; EV charging) grows mid-single digit
+g_infra_nonai,Non-AI revenue,Infrastructure excl. AI: growth,pct,Bull,,10,10,9,9,[ANALYST TO REVIEW] Power shortages drive energy-infrastructure demand (mgmt 3Q26 p.4)
+g_auto,Non-AI revenue,Automation: revenue growth,pct,Bear,,2,2,2,2,[ANALYST TO REVIEW] Industrial cycle stays weak
+g_auto,Non-AI revenue,Automation: revenue growth,pct,Base,,8,6,6,6,[ANALYST TO REVIEW] 3Q26 growth re-accelerated to +19% y/y as IA demand improved; normalises
+g_auto,Non-AI revenue,Automation: revenue growth,pct,Bull,,12,10,9,9,[ANALYST TO REVIEW] Industrial automation upcycle plus building automation recovery
+g_mob,Non-AI revenue,Mobility: revenue growth,pct,Bear,,-10,-5,0,0,[ANALYST TO REVIEW] EV demand stays weak longer
+g_mob,Non-AI revenue,Mobility: revenue growth,pct,Base,,0,5,8,8,[ANALYST TO REVIEW] Mgmt expected 1-2 weak EV years (Feb-26); 3Q26 returned to +7% y/y
+g_mob,Non-AI revenue,Mobility: revenue growth,pct,Bull,,10,12,12,12,[ANALYST TO REVIEW] EV powertrain demand recovers
+others_pct,Non-AI revenue,Unallocated 'Others' % of segment revenue,pct,Bear,,0.15,0.15,0.15,0.15,Historical 0.1-0.2% of revenue (segment note)
+others_pct,Non-AI revenue,Unallocated 'Others' % of segment revenue,pct,Base,,0.15,0.15,0.15,0.15,Historical 0.1-0.2% of revenue (segment note)
+others_pct,Non-AI revenue,Unallocated 'Others' % of segment revenue,pct,Bull,,0.15,0.15,0.15,0.15,Historical 0.1-0.2% of revenue (segment note)
+m_pe,Segment margins,Power Electronics operating margin,pct,Bear,18.5,17.5,17,17,17,[ANALYST TO REVIEW] Price competition in AI power; inventory write-downs recur
+m_pe,Segment margins,Power Electronics operating margin,pct,Base,20,20,20,20,20,[ANALYST TO REVIEW] 9M26 20.5% (3Q26 18.8% with write-downs); held at 20%
+m_pe,Segment margins,Power Electronics operating margin,pct,Bull,20.5,21,21.5,21.5,21.5,[ANALYST TO REVIEW] HVDC mix and pricing pass-through lift margin
+m_infra,Segment margins,Infrastructure operating margin,pct,Bear,17.5,16,15,15,15,[ANALYST TO REVIEW] Systems business more competitive; margin reverts towards FY2025 15.6%
+m_infra,Segment margins,Infrastructure operating margin,pct,Base,18.5,18.5,18.5,18.5,18.5,[ANALYST TO REVIEW] 9M26 18.6%; 3Q26 18.3%
+m_infra,Segment margins,Infrastructure operating margin,pct,Bull,19,19.5,20,20,20,[ANALYST TO REVIEW] Scale and liquid-cooling mix
+m_auto,Segment margins,Automation operating margin,pct,Bear,0.5,1,1.5,2,2,[ANALYST TO REVIEW] No recovery from FY2025 1.0%
+m_auto,Segment margins,Automation operating margin,pct,Base,2,4,5,6,6,[ANALYST TO REVIEW] 3Q26 4.8% as BA returned to profit; recovers towards (not to) FY2021 10.8%
+m_auto,Segment margins,Automation operating margin,pct,Bull,2.5,5,7,8,9,[ANALYST TO REVIEW] Full cyclical recovery
+m_mob,Segment margins,Mobility operating margin,pct,Bear,-5,-5,-4,-4,-4,[ANALYST TO REVIEW] Losses persist
+m_mob,Segment margins,Mobility operating margin,pct,Base,-4,-2,0,2,3,[ANALYST TO REVIEW] 9M26 -5.1%; 3Q26 -1.5% as losses narrowed; breakeven by FY2028
+m_mob,Segment margins,Mobility operating margin,pct,Bull,-3,0,2,4,5,[ANALYST TO REVIEW] Volume recovery restores FY2023-level profitability
+gross_margin,Costs and below EBIT,Gross margin,pct,Bear,34.5,34,33.5,33,33,[ANALYST TO REVIEW] Write-downs and raw-material costs (+2% YTD) not fully passed on
+gross_margin,Costs and below EBIT,Gross margin,pct,Base,35,35,35,35,35,[ANALYST TO REVIEW] Mgmt: ~35% reasonable (2Q26); 9M26 35.5%; 4Q26 not below 3Q26's 34.1%
+gross_margin,Costs and below EBIT,Gross margin,pct,Bull,35.5,36,36,36,36,[ANALYST TO REVIEW] Price increases in 4Q26-1Q27 recover costs
+rnd_pct,Costs and below EBIT,R&D % revenue,pct,Bear,8.5,8.5,8.5,8.5,8.5,9M26 8.5% (3Q26 slides p.13); SG&A is the balance between gross profit and segment-built EBIT
+rnd_pct,Costs and below EBIT,R&D % revenue,pct,Base,8.5,8.5,8.5,8.5,8.5,9M26 8.5% (3Q26 slides p.13); SG&A is the balance between gross profit and segment-built EBIT
+rnd_pct,Costs and below EBIT,R&D % revenue,pct,Bull,8.5,8.5,8.5,8.5,8.5,9M26 8.5% (3Q26 slides p.13); SG&A is the balance between gross profit and segment-built EBIT
+other_nonop_pct,Costs and below EBIT,Other non-operating income % revenue,pct,Bear,1,0,0,0,0,[ANALYST TO REVIEW] FY2026 includes 9M26 investment/FX gains; none assumed after
+other_nonop_pct,Costs and below EBIT,Other non-operating income % revenue,pct,Base,1.2,0.4,0.4,0.4,0.4,[ANALYST TO REVIEW] 9M26 non-operating NT$8.2bn (1.5% of revenue) incl. one-off investment gains; normalises
+other_nonop_pct,Costs and below EBIT,Other non-operating income % revenue,pct,Bull,1.4,0.6,0.6,0.6,0.6,[ANALYST TO REVIEW] FX and investment gains continue
+cash_yield,Costs and below EBIT,Interest yield on opening cash,pct,Bear,2,2,2,2,2,FY2025 2.8% on average cash; rates assumed lower
+cash_yield,Costs and below EBIT,Interest yield on opening cash,pct,Base,2.2,2.2,2.2,2.2,2.2,FY2025 2.8% on average cash; rates assumed lower
+cash_yield,Costs and below EBIT,Interest yield on opening cash,pct,Bull,2.4,2.4,2.4,2.4,2.4,FY2025 2.8% on average cash; rates assumed lower
+cost_debt,Costs and below EBIT,Cost of debt on opening debt,pct,Bear,3.2,3.2,3.2,3.2,3.2,FY2025 implied 3.2% (finance costs / average debt)
+cost_debt,Costs and below EBIT,Cost of debt on opening debt,pct,Base,3,3,3,3,3,FY2025 implied 3.2% (finance costs / average debt)
+cost_debt,Costs and below EBIT,Cost of debt on opening debt,pct,Bull,3,3,3,3,3,FY2025 implied 3.2% (finance costs / average debt)
+etr,Costs and below EBIT,Effective tax rate,pct,Bear,23.5,23.5,23.5,23.5,23.5,[ANALYST TO REVIEW] Global minimum tax and higher-tax geographies
+etr,Costs and below EBIT,Effective tax rate,pct,Base,22.7,22.7,22.7,22.7,22.7,9M26 22.7% (3Q26 transcript p.2); FY2025 22.7%
+etr,Costs and below EBIT,Effective tax rate,pct,Bull,22,22,22,22,22,[ANALYST TO REVIEW] Mix shift to lower-tax sites
+nci_pct,Costs and below EBIT,Non-controlling interests % net income,pct,Bear,11,11,11,11,11,9M26 10.2%; FY2025 11.5% (mainly Delta Thailand)
+nci_pct,Costs and below EBIT,Non-controlling interests % net income,pct,Base,10.5,10.5,10.5,10.5,10.5,9M26 10.2%; FY2025 11.5% (mainly Delta Thailand)
+nci_pct,Costs and below EBIT,Non-controlling interests % net income,pct,Bull,10,10,10,10,10,9M26 10.2%; FY2025 11.5% (mainly Delta Thailand)
+dps_2026,Cash returns,Dividend per share paid in FY2026 (NT$),ntd,Bear,11.6,,,,,Board proposal NT$11.6 out of FY2025 earnings (4Q25 slides p.19); paid 3Q26
+dps_2026,Cash returns,Dividend per share paid in FY2026 (NT$),ntd,Base,11.6,,,,,Board proposal NT$11.6 out of FY2025 earnings (4Q25 slides p.19); paid 3Q26
+dps_2026,Cash returns,Dividend per share paid in FY2026 (NT$),ntd,Bull,11.6,,,,,Board proposal NT$11.6 out of FY2025 earnings (4Q25 slides p.19); paid 3Q26
+payout,Cash returns,Payout of prior-year net income,pct,Bear,,50,50,50,50,[ANALYST TO REVIEW] FY2022-FY2025 average ~60% incl. one 78% year; typical ~50%
+payout,Cash returns,Payout of prior-year net income,pct,Base,,50,50,50,50,[ANALYST TO REVIEW] FY2022-FY2025 average ~60% incl. one 78% year; typical ~50%
+payout,Cash returns,Payout of prior-year net income,pct,Bull,,55,55,55,55,[ANALYST TO REVIEW] Higher payout as capex normalises
+nci_div_pct,Cash returns,Dividends to NCI % of prior-year NCI profit,pct,Bear,40,40,40,40,40,FY2024 36%; FY2025 41%
+nci_div_pct,Cash returns,Dividends to NCI % of prior-year NCI profit,pct,Base,40,40,40,40,40,FY2024 36%; FY2025 41%
+nci_div_pct,Cash returns,Dividends to NCI % of prior-year NCI profit,pct,Bull,40,40,40,40,40,FY2024 36%; FY2025 41%
+capex_2026,Capex and D&A,FY2026 total capex,ntd_m,Bear,70000,,,,,Management: ~NT$70bn in 2026 (2Q26 transcript p.11); 1H26 NT$27.5bn
+capex_2026,Capex and D&A,FY2026 total capex,ntd_m,Base,70000,,,,,Management: ~NT$70bn in 2026 (2Q26 transcript p.11); 1H26 NT$27.5bn
+capex_2026,Capex and D&A,FY2026 total capex,ntd_m,Bull,70000,,,,,Management: ~NT$70bn in 2026 (2Q26 transcript p.11); 1H26 NT$27.5bn
+capex_pct,Capex and D&A,Total capex % revenue,pct,Bear,,8,6.5,6,6,[ANALYST TO REVIEW] Mgmt would cut spend if growth slows (2Q26 p.11)
+capex_pct,Capex and D&A,Total capex % revenue,pct,Base,,9,8,7,6.5,[ANALYST TO REVIEW] FY2026E ~9%; Penang and Thailand build-out then normalises towards FY2021-25 avg 7.4%
+capex_pct,Capex and D&A,Total capex % revenue,pct,Bull,,9.5,9,8,7,[ANALYST TO REVIEW] Capacity for faster growth
+capex_int_pct,Capex and D&A,Intangibles capex % revenue,pct,Bear,0.3,0.3,0.3,0.3,0.3,FY2025 0.26%
+capex_int_pct,Capex and D&A,Intangibles capex % revenue,pct,Base,0.3,0.3,0.3,0.3,0.3,FY2025 0.26%
+capex_int_pct,Capex and D&A,Intangibles capex % revenue,pct,Bull,0.3,0.3,0.3,0.3,0.3,FY2025 0.26%
+dep_rate,Capex and D&A,Depreciation % opening PP&E,pct,Bear,23,26,27,27,27,[ANALYST TO REVIEW] 3-year life for new AI equipment from Apr-26 (2Q26 p.13)
+dep_rate,Capex and D&A,Depreciation % opening PP&E,pct,Base,22,24,25,25,25,[ANALYST TO REVIEW] FY2022-25 20-21.5%; 3-year life for new AI equipment from Apr-26 pushes it up
+dep_rate,Capex and D&A,Depreciation % opening PP&E,pct,Bull,22,23,24,24,24,[ANALYST TO REVIEW] Smaller share of short-life equipment
+amort_rate,Capex and D&A,Amortisation % opening intangibles,pct,Bear,5,5,5,5,5,FY2025 4.8%
+amort_rate,Capex and D&A,Amortisation % opening intangibles,pct,Base,5,5,5,5,5,FY2025 4.8%
+amort_rate,Capex and D&A,Amortisation % opening intangibles,pct,Bull,5,5,5,5,5,FY2025 4.8%
+dso,Working capital,Receivable days,days,Bear,85,85,85,85,85,[ANALYST TO REVIEW] Larger system customers pay slower
+dso,Working capital,Receivable days,days,Base,80,80,80,80,80,FY2025 80.1; FY2021-25 range 72-83
+dso,Working capital,Receivable days,days,Bull,78,78,78,78,78,FY2025 80.1; FY2021-25 range 72-83
+dio,Working capital,Inventory days,days,Bear,115,112,110,110,110,[ANALYST TO REVIEW] Buffers stay high (mgmt 3Q26: larger inventory buffers needed)
+dio,Working capital,Inventory days,days,Base,110,105,102,102,102,[ANALYST TO REVIEW] 3Q26 inventory build; most excess worked through 4Q26 (mgmt); FY2025 101.6
+dio,Working capital,Inventory days,days,Bull,105,100,98,98,98,[ANALYST TO REVIEW] Shortages ease quickly
+dpo,Working capital,Payable days,days,Bear,85,85,85,85,85,[ANALYST TO REVIEW] Suppliers in shortage tighten terms
+dpo,Working capital,Payable days,days,Base,92,90,90,90,90,[ANALYST TO REVIEW] FY2025 94.5 vs FY2021-25 avg 85
+dpo,Working capital,Payable days,days,Bull,95,95,95,95,95,FY2025 94.5
+other_ca_pct,Working capital,Other current assets % revenue,pct,Bear,3.1,3.1,3.1,3.1,3.1,FY2025 3.1%
+other_ca_pct,Working capital,Other current assets % revenue,pct,Base,3.1,3.1,3.1,3.1,3.1,FY2025 3.1%
+other_ca_pct,Working capital,Other current assets % revenue,pct,Bull,3.1,3.1,3.1,3.1,3.1,FY2025 3.1%
+other_cl_pct,Working capital,Other current liabilities % revenue,pct,Bear,16.5,16.5,16.5,16.5,16.5,FY2025 17.6% (other payables; tax; contract liabilities)
+other_cl_pct,Working capital,Other current liabilities % revenue,pct,Base,17.5,17.5,17.5,17.5,17.5,FY2025 17.6% (other payables; tax; contract liabilities)
+other_cl_pct,Working capital,Other current liabilities % revenue,pct,Bull,17.5,17.5,17.5,17.5,17.5,FY2025 17.6% (other payables; tax; contract liabilities)

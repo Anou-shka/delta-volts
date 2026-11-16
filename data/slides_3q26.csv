@@ -1,0 +1,34 @@
+period,segment,item,value_ntd_m,source_page,notes
+3Q26,Power Electronics,revenue,105930,ic_3Q26.pdf p.6,segment table
+3Q26,Mobility,revenue,9071,ic_3Q26.pdf p.6,segment table
+3Q26,Automation,revenue,15900,ic_3Q26.pdf p.6,segment table
+3Q26,Infrastructure,revenue,65880,ic_3Q26.pdf p.6,segment table
+3Q26,Power Electronics,op_profit,19920,ic_3Q26.pdf p.6,segment table
+3Q26,Mobility,op_profit,-137,ic_3Q26.pdf p.6,segment table
+3Q26,Automation,op_profit,769,ic_3Q26.pdf p.6,segment table
+3Q26,Infrastructure,op_profit,12068,ic_3Q26.pdf p.6,segment table
+9M26,Power Electronics,revenue,287848,ic_3Q26.pdf p.14,segment table YT3Q26
+9M26,Mobility,revenue,25080,ic_3Q26.pdf p.14,segment table YT3Q26
+9M26,Automation,revenue,45791,ic_3Q26.pdf p.14,segment table YT3Q26
+9M26,Infrastructure,revenue,180154,ic_3Q26.pdf p.14,segment table YT3Q26
+9M26,Power Electronics,op_profit,58928,ic_3Q26.pdf p.14,segment table YT3Q26
+9M26,Mobility,op_profit,-1267,ic_3Q26.pdf p.14,segment table YT3Q26
+9M26,Automation,op_profit,435,ic_3Q26.pdf p.14,segment table YT3Q26
+9M26,Infrastructure,op_profit,33512,ic_3Q26.pdf p.14,segment table YT3Q26
+3Q26,Group,revenue,197059,mr_202607-09_EN.pdf,sum of Jul-Sep monthly releases (slides: 197.1bn)
+9M26,Group,revenue,539668,mr_202609_EN.pdf,Jan-Sep cumulative (slides: 539.7bn)
+3Q26,Group,gross_profit,67200,ic_3Q26.pdf p.4,rounded NT$bn x1000
+9M26,Group,gross_profit,191400,ic_3Q26.pdf p.12,rounded NT$bn x1000
+3Q26,Group,pbt,33667,ic_3Q26.pdf p.9,
+3Q26,Group,tax,-7608,ic_3Q26.pdf p.9,
+3Q26,Group,ni_nci,2564,ic_3Q26.pdf p.9,
+3Q26,Group,ni_parent,23495,ic_3Q26.pdf p.9,
+9M26,Group,pbt,99759,ic_3Q26.pdf p.17,
+9M26,Group,tax,-22697,ic_3Q26.pdf p.17,
+9M26,Group,ni_nci,7876,ic_3Q26.pdf p.17,
+9M26,Group,ni_parent,69186,ic_3Q26.pdf p.17,
+9M26,Group,eps_basic,26.64,ic_3Q26.pdf p.18,NT$ per share
+3Q26,Group,eps_basic,9.04,ic_3Q26.pdf p.10,NT$ per share
+9M26,Group,r_and_d,-45800,ic_3Q26.pdf p.13,rounded NT$bn x1000
+9M26,Group,sga,-54000,ic_3Q26.pdf p.13,rounded NT$bn x1000
+9M26,Group,ebitda_company,127200,ic_3Q26.pdf p.16,company definition (PBT + finance costs + D&A)

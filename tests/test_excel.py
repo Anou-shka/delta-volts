@@ -35,9 +35,10 @@ def test_all_checks_true(recalculated):
 @pytest.mark.parametrize("sheet,label,col,value", [
     ("IS", "Revenue", "G", 554_885.168),
     ("IS", "Operating profit (EBIT)", "G", 83_932.074),
-    ("IS", "EPS, basic (NT$)", "J", 17.59),
+    ("IS", "EPS, basic (NT$)", "O", 17.59),
     ("BS", "Total assets", "G", 639_618.600),
-    ("CF", "Cash at end of period", "J", 182_350.204),
+    ("CF", "Cash at end of period", "O", 182_350.204),
+    ("IS", "Revenue", "H", 539_668 + 218_000),      # FY2026E Base = 9M26 actual + 4Q26E
 ])
 def test_key_values(recalculated, sheet, label, col, value):
     values, _ = recalculated
@@ -51,9 +52,35 @@ def test_statements_have_no_hardcoded_numbers(recalculated):
     _, formulas = recalculated
     for sheet in ("IS", "BS", "CF", "Schedules"):
         ws = formulas[sheet]
-        for row in ws.iter_rows(min_row=7, min_col=3, max_col=10):
+        for row in ws.iter_rows(min_row=7, min_col=3, max_col=17):
             for c in row:
                 if isinstance(c.value, (int, float)) and not isinstance(c.value, bool):
                     pytest.fail(f"hard-coded number at {sheet}!{c.coordinate}: {c.value}")
                 if isinstance(c.value, str) and c.value.startswith("="):
                     assert not re.search(r"(?<![A-Z$\d.])\d{3,}", c.value), f"constant in {sheet}!{c.coordinate}"
+
+
+@pytest.mark.parametrize("scenario", ["Bear", "Bull"])
+def test_every_scenario_balances(recalculated, scenario, tmp_path):
+    """Switching the scenario selector keeps every check TRUE."""
+    from src.delta import recalc
+    path = tmp_path / f"model_{scenario}.xlsx"
+    shutil.copy(MODEL, path)
+    wb = load_workbook(path)
+    wb["Assumptions"]["B3"] = scenario
+    wb.save(path)
+    assert recalc.recalc(path).get("status") == "success"
+    checks = load_workbook(path, data_only=True)["Checks"]
+    flag = next(r[18].value for r in checks.iter_rows() if r[0].value == "ALL CHECKS")
+    assert flag is True
+
+
+def test_assumptions_file_is_complete():
+    import pandas as pd
+    a = pd.read_csv(ROOT / "model" / "assumptions.csv")
+    years = ["FY2026", "FY2027", "FY2028", "FY2029", "FY2030"]
+    for key, g in a.groupby("key"):
+        assert sorted(g.scenario) == ["Base", "Bear", "Bull"], key
+        filled = g[years].notna()
+        assert (filled.nunique() == 1).all(), f"{key}: scenarios fill different years"
+        assert g.rationale.notna().all(), f"{key}: rationale missing"

@@ -121,3 +121,59 @@ FY2025 Infrastructure revenue grew 82% to NT$182.0bn, and its segment profit ros
 - Q3 2026 results (decision D2): the forecast base period moves to 9M26 when they're published (~29–30 Oct 2026).
 - The 10-figure review in `docs/m1-review-sample.md`.
 - Confirm the June 2026 dividend payable in the Q2 2026 notes (M3).
+
+---
+
+## M3 — Forecasts (16 Nov 2026) — *draft, waiting for the analyst to set the Base case*
+
+### What was built
+
+- **Q3 2026 data.** The 3Q26 slides, the 3Q26 transcript and October 2026 revenue were added to the pipeline. 3Q26/9M26 segment and group figures are in `data/slides_3q26.csv`. They tie to the audited 1H26 segment note to within NT$1m for every segment, and the monthly releases tie to Q3 revenue. That makes 435 extraction checks, all passing.
+- **`model/assumptions.csv`:** 40 drivers × Bear / Base / Bull × FY2026E–FY2030E, each with a rationale. Drafts are tagged `[ANALYST TO REVIEW]`. This one file feeds the Assumptions sheet, and the scenario selector (Assumptions!B3) switches the whole model.
+- **Workbook:** forecast columns FY2026E–FY2030E on Segments, IS, BS, CF and Schedules, built from formulas only. Size: 2,292 formulas and zero errors. **Every check is TRUE in all three scenarios**, including *assets = liabilities + equity* in each forecast year, with cash as the balancing item from the cash flow statement.
+- **Tests (19, all passing in CI):**
+  - Bear and Bull both balance;
+  - the assumptions file is complete;
+  - there are no typed-in numbers in forecast cells.
+- **Chart:** `report/figures/revenue_build.png` shows the Base-case revenue build.
+
+### How revenue is built
+
+1. **FY2026E = 9M26 actual + 4Q26E.** The Q4 estimate is split by the 3Q26 segment mix. Management guided Q4 revenue above Q3's NT$197.1bn, and October alone was NT$74.7bn.
+2. **AI data-centre line**, anchored at FY2026E on management's 3Q26 statements: about 50% of revenue, made up of AI power about 25%, liquid cooling about 13% and other AI data-centre about 12%. From FY2027E each line grows at (1 + AI data-centre capex growth) × (1 + Delta's content/share gain) − 1.
+3. **AI allocation:** each AI line is split between Power Electronics and Infrastructure. Delta doesn't disclose this, so the split is an analyst input.
+4. **Non-AI revenue:** the remainder of Power Electronics and Infrastructure grows with its own driver. Automation and Mobility grow on industrial-cycle and EV assumptions.
+5. **EBIT** = Σ segment revenue × segment margin. Gross margin and R&D are inputs; SG&A balances.
+
+### Draft outputs (before the analyst's review)
+
+| | Bear | Base | Bull |
+|---|---:|---:|---:|
+| FY2026E revenue (NT$bn) | 739.7 | 757.7 | 767.7 |
+| FY2026E EPS (NT$) | 32.24 | 36.72 | 39.33 |
+| FY2028E revenue (NT$bn) | 767.7 | 1,051.9 | 1,280.9 |
+| FY2030E revenue (NT$bn) | 778.8 | 1,257.6 | 1,758.0 |
+| FY2030E AI data-centre % of revenue | 52% | 63% | 70% |
+| FY2030E EBIT margin | 14.2% | 17.9% | 19.7% |
+| FY2030E EPS (NT$) | 29.68 | 62.63 | 98.10 |
+
+### The 3 most important modelling choices
+
+1. **Calibrate the current year to actuals, not to a growth rate.** Three quarters of FY2026 are already reported, so FY2026E is 9M26 actual plus one Q4 assumption. That leaves one judgement for the current year, and management has bounded it (Q4 above Q3).
+2. **A two-link AI chain instead of a false-precision unit model.** Delta doesn't disclose rack units or content per rack. A chain of shipments × content × share would have been mostly invented numbers. Capex growth (which management quotes) times a content/share gain keeps the economic logic (Delta grows with hyperscaler spend, plus or minus share and content) while keeping each assumption visible and debatable.
+3. **Segment margins drive EBIT; cash balances the balance sheet.** Margins are set where Delta discloses profit (by segment), so AI mix shows up in group margin automatically. Debt and other long-term items are held flat, working capital follows days and PP&E follows capex and depreciation. Cash is whatever the cash flow statement leaves, which makes the balance-sheet check a real test of the model's plumbing.
+
+### 3 questions an interviewer could ask
+
+1. "Your Base case has AI data-centre revenue at 63% of sales by 2030. What has to be true for that, and what breaks it?"
+2. "Why is SG&A a plug? Doesn't that hide cost assumptions?"
+3. "Delta changed AI equipment depreciation to 3 years. Where does that show up in your model?" (Answer: in D&A, PP&E and EBITDA. EBIT is margin-driven, so the margin inputs must allow for it.)
+
+### Decisions needed from the analyst (largest valuation impact first)
+
+1. **AI data-centre capex growth, FY2027E–FY2030E.** Base is +30% / +15% / +8% / +5%. Nothing moves the valuation more.
+2. **Segment margins:** Power Electronics 20%, Infrastructure 18.5%, Automation recovering to 6%, Mobility to +3%.
+3. **Content/share gains:** power +5% a year, cooling +10% to +6%, other +3%.
+4. **4Q26E revenue:** Base NT$218bn.
+5. **AI allocation to Power Electronics** (power 85%, cooling 40%, other 30%), which affects segment mix and so margins.
+6. **Payout:** at 50%, net cash rises to about NT$309bn by FY2030E. Is that credible, or should the payout rise?

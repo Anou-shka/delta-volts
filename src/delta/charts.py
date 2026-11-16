@@ -137,12 +137,81 @@ def chart_margins(mode: str) -> Path:
     return out
 
 
+MODEL = ROOT / "model" / "delta_model.xlsx"
+HISTORY_GREY = {"light": "#a8a69f", "dark": "#77756e"}
+
+
+def forecast_table() -> pd.DataFrame:
+    """Base-case revenue build (NT$ bn) from the recalculated model: history total, forecast split AI / non-AI."""
+    from openpyxl import load_workbook
+    ws = load_workbook(MODEL, data_only=True)["Segments"]
+    rows: dict[str, int] = {}
+    for r in ws.iter_rows():
+        if isinstance(r[0].value, str):
+            rows.setdefault(r[0].value, r[0].row)  # first occurrence: the build, not the disclosures table
+    cols = {"FY2024": "F", "FY2025": "G", "FY2026": "H", "FY2027": "I", "FY2028": "J", "FY2029": "K", "FY2030": "L"}
+    lines = {"Non-AI revenue": "Group revenue excl. AI data-centre", "Other AI data-centre": "Other AI data-centre",
+             "Liquid cooling": "Liquid cooling", "AI power solutions": "AI power solutions",
+             "Group revenue": "Group revenue"}
+    out = {k: [ws[f"{c}{rows[v]}"].value for c in cols.values()] for k, v in lines.items()}
+    df = pd.DataFrame(out, index=list(cols)) / 1000
+    return df
+
+
+def chart_forecast(mode: str) -> Path:
+    t = THEMES[mode]
+    df = forecast_table()
+    fig, ax = plt.subplots(figsize=(8, 4.6), dpi=200)
+    fig.patch.set_facecolor(t["surface"])
+    _style(ax, t)
+    stack = ["Non-AI revenue", "Other AI data-centre", "Liquid cooling", "AI power solutions"]
+    colors = dict(zip(stack, [t["series"][3], t["series"][2], t["series"][1], t["series"][0]]))
+    x = list(range(len(df)))
+    for i, p in enumerate(df.index):
+        if pd.isna(df.at[p, "AI power solutions"]):
+            ax.bar(i, df.at[p, "Group revenue"], width=0.62, color=HISTORY_GREY[mode], edgecolor=t["surface"],
+                   linewidth=1.5, label="Reported (AI not disclosed)" if i == 0 else None)
+            continue
+        bottom = 0.0
+        for k in stack:
+            ax.bar(i, df.at[p, k], bottom=bottom, width=0.62, color=colors[k], edgecolor=t["surface"],
+                   linewidth=1.5, label=k if p == "FY2026" else None)
+            bottom += df.at[p, k]
+    for i, p in enumerate(df.index):
+        ax.text(i, df.at[p, "Group revenue"] + 15, f"{df.at[p, 'Group revenue']:,.0f}", ha="center", va="bottom",
+                fontsize=10, color=t["text"], fontweight="semibold")
+    last, y = df.iloc[-1], 0.0
+    for k in stack:
+        ax.text(len(df) - 1 + 0.36, y + last[k] / 2, f"{k}  {last[k]:,.0f}", va="center", ha="left", fontsize=9,
+                color=t["text2"])
+        y += last[k]
+    ax.axvline(1.5, color=t["grid"], linewidth=1, linestyle=(0, (3, 3)))
+    ax.text(1.62, df["Group revenue"].max() * 0.98, "Forecast  ->", fontsize=9, color=t["text2"])
+    ax.set_xticks(x, [p.replace("FY", "FY ") + ("A" if i < 2 else "E") for i, p in enumerate(df.index)])
+    ax.set_xlim(-0.6, len(df) - 1 + 2.3)
+    ax.set_ylim(0, df["Group revenue"].max() * 1.28)
+    ax.set_ylabel("NT$ billion", color=t["text2"], fontsize=10)
+    ax.legend(loc="upper left", frameon=False, ncol=3, fontsize=8.5, labelcolor=t["text2"], bbox_to_anchor=(0, 1.02),
+              handlelength=1, handleheight=1)
+    fig.suptitle("Revenue build: AI data-centre lines vs the rest", x=0.02, ha="left", fontsize=13, color=t["text"],
+                 fontweight="semibold")
+    fig.text(0.02, 0.005, "Draft Base case [ANALYST TO REVIEW]. FY2026E = 9M26 actual + 4Q26E; AI split anchored on "
+             "the 3Q26 call. AI revenue not reported before 2026.", fontsize=7.5, color=t["text2"])
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    out = FIG / f"revenue_build{'' if mode == 'light' else '_dark'}.png"
+    fig.savefig(out, facecolor=t["surface"])
+    plt.close(fig)
+    return out
+
+
 def main() -> int:
     FIG.mkdir(parents=True, exist_ok=True)
     _font()
     for mode in THEMES:
         print(chart_segments(mode))
         print(chart_margins(mode))
+        if MODEL.exists():
+            print(chart_forecast(mode))
     return 0
 
 

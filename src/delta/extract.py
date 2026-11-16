@@ -148,6 +148,32 @@ def extract_segments(fname: str, ebit: dict[str, float]) -> list[dict]:
     return out
 
 
+# --------------------------------------------------------------------------- 3Q26 (earnings slides)
+SLIDES = ROOT / "data" / "slides_3q26.csv"
+
+
+def slide_segments() -> pd.DataFrame:
+    """3Q26 and 9M26 segment figures hand-entered from the 3Q26 earnings slides (NT$ thousands, as segments.csv).
+
+    The English Q3 2026 financial statements were not yet on Delta's IR site when this was built; the
+    slides are a primary company source and are tied to the audited 1H26 note by run_checks().
+    """
+    sl = pd.read_csv(SLIDES)
+    seg = sl[sl.segment != "Group"].copy()
+    rows = [{"document": "ic_3Q26.pdf", "period": r.period, "basis": SEG_BASIS[5], "segment": r.segment,
+             "item": r["item"], "value": r.value_ntd_m * 1000, "latest": True} for _, r in seg.iterrows()]
+    for (period, item), g in seg.groupby(["period", "item"]):
+        total = g.value_ntd_m.sum() * 1000
+        rows.append({"document": "ic_3Q26.pdf", "period": period, "basis": SEG_BASIS[5], "segment": "Total",
+                     "item": item, "value": total, "latest": True})
+        if item == "revenue":
+            grp = sl[(sl.period == period) & (sl.segment == "Group") & (sl["item"] == "revenue")].value_ntd_m.iloc[0]
+            rows.append({"document": "ic_3Q26.pdf", "period": period, "basis": SEG_BASIS[5],
+                         "segment": "Others (derived: group revenue - segment total)", "item": item,
+                         "value": grp * 1000 - total, "latest": True})
+    return pd.DataFrame(rows)
+
+
 # --------------------------------------------------------------------------- monthly revenue
 def extract_monthly() -> pd.DataFrame:
     """Monthly revenue releases (unaudited): revenue, year-to-date revenue and segment mix (%)."""
@@ -453,7 +479,14 @@ def write_sources(lines: pd.DataFrame, std_keys: dict[str, tuple[str, str]], std
                          "period": period, "document": r.document,
                          "page_or_url": f"p.{r.page} | {mf['url']}", "date_accessed": mf["date_accessed"],
                          "notes": "extract.py: as reported"})
-    for _, r in segs.iterrows():
+    for _, r in pd.read_csv(SLIDES).iterrows():
+        doc = r.source_page.split(" ")[0]
+        mf = manifest.get(doc, {"url": "Delta IR file centre", "date_accessed": ""})
+        rows.append({"figure": f"{r['item']} - {r.segment} (3Q26 slides)", "value": r.value_ntd_m,
+                     "unit": "NT$ per share" if r["item"].startswith("eps") else "NT$ million", "period": r.period,
+                     "document": doc, "page_or_url": f"{r.source_page} | {mf['url']}",
+                     "date_accessed": mf["date_accessed"], "notes": f"extract.py: earnings slides; {r.notes}".strip("; ")})
+    for _, r in segs[segs.document != "ic_3Q26.pdf"].iterrows():
         mf = manifest[r.document]
         rows.append({"figure": f"segment {r['item']} - {r.segment}", "value": r.value, "unit": "NT$ thousands",
                      "period": r.period, "document": r.document,
@@ -491,7 +524,7 @@ def main() -> int:
         tot = g[g.segment == "Total"].value.iloc[0]
         extra.append({**g.iloc[0].to_dict(), "segment": "Others (derived: group revenue - segment total)",
                       "value": rev[(doc, period)] - tot})
-    segs = pd.concat([segs, pd.DataFrame(extra)], ignore_index=True)
+    segs = pd.concat([segs, pd.DataFrame(extra), slide_segments()], ignore_index=True)
     segs.to_csv(OUT / "segments.csv", index=False)
 
     std = standardise(lines)
@@ -512,6 +545,20 @@ def main() -> int:
         extra.append({"check": "Monthly: three monthly releases sum to quarterly revenue", "document":
                       "mr_*.pdf", "period": f"{q}{yy}", "expected": rep, "actual": tot, "diff": tot - rep,
                       "pass": abs(tot - rep) <= 3})
+    # 3Q26 slides: audited 1H26 segment note + 3Q26 = 9M26 (slides are in NT$ m, so allow NT$2m)
+    sv = segs[segs.latest].set_index(["period", "segment", "item"]).value
+    for seg in ("Power Electronics", "Infrastructure", "Automation", "Mobility"):
+        for item in ("revenue", "op_profit"):
+            exp, act = sv[("9M26", seg, item)], sv[("1H26", seg, item)] + sv[("3Q26", seg, item)]
+            extra.append({"check": f"3Q26 slides: 1H26 (audited) + 3Q26 = 9M26 ({seg}, {item})",
+                          "document": "ic_3Q26.pdf", "period": "9M26", "expected": exp, "actual": act,
+                          "diff": act - exp, "pass": abs(act - exp) <= 2000})
+    q3 = sum(mm[f"2026-{m}"] for m in ("07", "08", "09"))
+    extra.append({"check": "3Q26: Jul-Sep monthly revenue = 9M26 cumulative - 1H26 (audited)", "document": "mr_*.pdf",
+                  "period": "3Q26", "expected": monthly.set_index("month").ytd_revenue_ntd_m["2026-09"]
+                  - std.at["revenue", "1H26"], "actual": q3, "diff": 0.0, "pass": False})
+    extra[-1]["diff"] = extra[-1]["actual"] - extra[-1]["expected"]
+    extra[-1]["pass"] = abs(extra[-1]["diff"]) <= 3
     checks = pd.concat([checks, pd.DataFrame(extra)], ignore_index=True)
     checks.to_csv(OUT / "checks.csv", index=False)
 

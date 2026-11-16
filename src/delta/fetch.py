@@ -47,12 +47,13 @@ for y in (2024, 2025):
     FILES.append((f"ar_{y}.pdf", f"{FC}/annual_report/{y}annual.pdf", f"{y} Annual Report"))
 
 # Analyst meeting (earnings) slides: Q4 of each year plus 2026 quarters, and the latest transcript.
-for q in ("4Q21", "4Q22", "4Q23", "4Q24", "4Q25", "1Q26", "2Q26"):
+for q in ("4Q21", "4Q22", "4Q23", "4Q24", "4Q25", "1Q26", "2Q26", "3Q26"):
     FILES.append((f"ic_{q}.pdf", f"{FC}/calendar/{q}_Analyst Meeting.pdf", f"{q} analyst meeting slides"))
 FILES.append(("call_2Q26_transcript.pdf", f"{FC}/calendar/2Q26_Transcript.pdf", "2Q26 analyst meeting transcript"))
+FILES.append(("call_3Q26_transcript.pdf", f"{FC}/calendar/3Q26_Transcript.pdf", "3Q26 analyst meeting transcript"))
 
-# Monthly revenue reports, 2025-2026 (Q3 2026 revenue ahead of results; quarterly cross-checks).
-for y, months in ((2025, range(1, 13)), (2026, range(1, 10))):
+# Monthly revenue reports, Jan 2025 - Oct 2026 (Q3 2026 revenue ahead of results; quarterly cross-checks).
+for y, months in ((2025, range(1, 13)), (2026, range(1, 11))):
     for m in months:
         FILES.append((f"mr_{y}{m:02d}_EN.pdf", f"{FC}/monthly_revenues/{y}{m:02d}_EN.pdf",
                       f"Monthly revenue report {y}-{m:02d}"))

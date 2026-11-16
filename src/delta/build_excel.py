@@ -1,12 +1,18 @@
-"""Build model/delta_model.xlsx with live formulas from data/processed/.
+"""Build model/delta_model.xlsx with live formulas from data/processed/ and model/assumptions.csv.
 
-M2 scope: Cover, Assumptions (historical driver reference + scenario selector),
-Historicals, Segments, IS, BS, CF, Schedules, Checks. Historical periods
-FY2021A-FY2025A plus 1H25A and 1H26A. Forecast columns are added in M3.
+Sheets: Cover, Assumptions, Historicals, Segments, IS, BS, CF, Schedules, Checks.
+Columns: FY2021A-FY2025A (C-G), FY2026E-FY2030E forecast (H-L), interim 1H25A/1H26A
+(N-O) and, on Segments, 3Q26A/9M26A from the 3Q26 earnings slides (P-Q).
 
-Conventions (banking): blue = hard-coded input, black = formula, green = link to
-another sheet, yellow fill = key input for the analyst. Units: NT$ millions
-unless stated. Every hard-coded figure is in data/sources.csv.
+Forecast logic (M3):
+  revenue  = segment build: FY2026E = 9M26 actual + 4Q26E (split by 3Q26 mix);
+             FY2027E+ = AI data-centre lines (capex growth x Delta content gain) + non-AI drivers
+  EBIT     = sum of segment revenue x segment margin; gross margin and R&D are inputs, SG&A balances
+  BS / CF  = working-capital days, capex and depreciation schedules; cash is the balancing item
+             from the cash flow statement, so "assets = liabilities + equity" tests the model.
+
+Conventions (banking): blue = hard-coded input, black = formula, green = link to another sheet,
+yellow fill = Base-case input set by the analyst. NT$ million unless stated.
 
 Run: python -m src.delta.build_excel   (then python -m src.delta.recalc model/delta_model.xlsx)
 """
@@ -27,29 +33,40 @@ from .extract import BS_MAP, CF_MAP, IS_MAP
 
 ROOT = Path(__file__).resolve().parents[2]
 PROCESSED = ROOT / "data" / "processed"
+ASSUMPTIONS = ROOT / "model" / "assumptions.csv"
+SLIDES = ROOT / "data" / "slides_3q26.csv"
 OUT = ROOT / "model" / "delta_model.xlsx"
 
 FY = ["FY2021", "FY2022", "FY2023", "FY2024", "FY2025"]
+FC = ["FY2026", "FY2027", "FY2028", "FY2029", "FY2030"]
 INTERIM = ["1H25", "1H26"]
+SLIDE = ["3Q26", "9M26"]
 PERIODS = FY + INTERIM
-COL = {"FY2021": "C", "FY2022": "D", "FY2023": "E", "FY2024": "F", "FY2025": "G", "1H25": "I", "1H26": "J"}
-HEAD = {p: f"{p}A" for p in PERIODS}
+COL = {"FY2021": "C", "FY2022": "D", "FY2023": "E", "FY2024": "F", "FY2025": "G",
+       "FY2026": "H", "FY2027": "I", "FY2028": "J", "FY2029": "K", "FY2030": "L",
+       "1H25": "N", "1H26": "O", "3Q26": "P", "9M26": "Q"}
+HEAD = {**{p: f"{p}A" for p in FY + INTERIM + SLIDE}, **{p: f"{p}E" for p in FC}}
 PERIOD_END = {"FY2021": "31-Dec-21", "FY2022": "31-Dec-22", "FY2023": "31-Dec-23", "FY2024": "31-Dec-24",
-              "FY2025": "31-Dec-25", "1H25": "30-Jun-25", "1H26": "30-Jun-26"}
-PREV = {"FY2022": "FY2021", "FY2023": "FY2022", "FY2024": "FY2023", "FY2025": "FY2024", "1H26": "1H25"}
-PREV_BS = {"FY2022": "FY2021", "FY2023": "FY2022", "FY2024": "FY2023", "FY2025": "FY2024",
-           "1H25": "FY2024", "1H26": "FY2025"}  # balance sheet at the start of the period
+              "FY2025": "31-Dec-25", "FY2026": "31-Dec-26", "FY2027": "31-Dec-27", "FY2028": "31-Dec-28",
+              "FY2029": "31-Dec-29", "FY2030": "31-Dec-30", "1H25": "30-Jun-25", "1H26": "30-Jun-26",
+              "3Q26": "Jul-Sep 26", "9M26": "30-Sep-26"}
+ALL_FY = FY + FC
+PREV = {**{b: a for a, b in zip(ALL_FY, ALL_FY[1:])}, "1H26": "1H25"}
+PREV_BS = {**{b: a for a, b in zip(ALL_FY, ALL_FY[1:])}, "1H25": "FY2024", "1H26": "FY2025"}
+CHECK_ALL = "S"  # "All periods" column on the Checks sheet
 
 # ---------------------------------------------------------------- styles
 ARIAL = "Arial"
 BLUE, BLACK, GREEN, GREY, WHITE = "0000FF", "000000", "008000", "595959", "FFFFFF"
-NAVY = "1F3864"
+NAVY, TEAL = "1F3864", "2F5597"
 F_NUM = '#,##0.0;(#,##0.0);"-"'
 F_PCT = '0.0%;(0.0%);"-"'
 F_EPS = '0.00;(0.00);"-"'
 F_DAYS = '0.0;(0.0);"-"'
 F_X = '0.00"x";(0.00"x");"-"'
 FILL_HEAD = PatternFill("solid", fgColor=NAVY)
+FILL_FC_HEAD = PatternFill("solid", fgColor=TEAL)
+FILL_FC = PatternFill("solid", fgColor="F2F6FC")
 FILL_SECTION = PatternFill("solid", fgColor="D9E1F2")
 FILL_KEY = PatternFill("solid", fgColor="FFFF00")
 FILL_TRUE = PatternFill("solid", fgColor="C6EFCE")
@@ -57,8 +74,9 @@ FILL_FALSE = PatternFill("solid", fgColor="FFC7CE")
 THIN_TOP = Border(top=Side(style="thin", color="808080"))
 STYLE_COLOR = {"input": BLUE, "formula": BLACK, "link": GREEN}
 
-LINK_RE = re.compile(r"^=-?'[^']+'![A-Z]+\d+$")
+LINK_RE = re.compile(r"^=-?'[^']+'!\$?[A-Z]+\$?\d+$")
 REG: dict[tuple[str, str], int] = {}  # (sheet, key) -> row
+PENDING: list = []  # forecast cells, written after every row is registered (allows forward references)
 
 
 def font(color=BLACK, bold=False, italic=False, size=10):
@@ -72,53 +90,77 @@ def tf_format(ws, rng: str, top_left: str) -> None:
                                                    fill=FILL_FALSE))
 
 
-def ref(sheet: str, key: str, p: str) -> str:
-    return f"'{sheet}'!{COL[p]}{REG[(sheet, key)]}"
+def ref(sheet: str, key: str, p: str, absolute: bool = False) -> str:
+    c, r = COL[p], REG[(sheet, key)]
+    return f"'{sheet}'!${c}${r}" if absolute else f"'{sheet}'!{c}{r}"
+
+
+def A(key: str, p: str) -> str:
+    """Live (scenario-selected) assumption for period p."""
+    return ref("Assumptions", key, p)
+
+
+def A26(key: str) -> str:
+    """A one-off FY2026E assumption, anchored absolutely."""
+    return ref("Assumptions", key, "FY2026", absolute=True)
+
+
+def color_for(style: str, v) -> str:
+    color = STYLE_COLOR[style]
+    if style == "link" and isinstance(v, str) and not LINK_RE.match(v):
+        color = BLACK  # a formula combining links is a calculation, not a link
+    return color
 
 
 class Sheet:
-    """Writes a period-grid sheet: labels in A, notes in B, periods in C..J."""
+    """Period-grid sheet: labels in A, notes in B, historicals C-G, forecast H-L, interim N-Q."""
 
-    def __init__(self, wb: Workbook, name: str, title: str, note: str, periods=PERIODS):
+    def __init__(self, wb: Workbook, name: str, title: str, note: str, periods=PERIODS, forecast=True):
         self.ws = wb.create_sheet(name)
-        self.name, self.periods, self.r = name, periods, 7
+        self.name, self.periods, self.forecast, self.r = name, periods, forecast, 7
         ws = self.ws
         ws["A1"] = title
         ws["A1"].font = font(NAVY, bold=True, size=14)
         ws["A2"] = note
         ws["A2"].font = font(GREY, italic=True)
-        for c in ("A3", "A4"):
-            ws[c].font = font()
         ws.column_dimensions["A"].width = 46
         ws.column_dimensions["B"].width = 30
-        for p in PERIODS:
+        for p in COL:
             ws.column_dimensions[COL[p]].width = 12
-        ws.column_dimensions["H"].width = 3
+        ws.column_dimensions["M"].width = 2
         ws["A5"], ws["B5"] = "NT$ million", "Note / source"
         for c in ("A5", "B5"):
             ws[c].font = font(WHITE, bold=True)
             ws[c].fill = FILL_HEAD
-        for p in periods:
+        cols = list(periods) + (FC if forecast else [])
+        for p in cols:
             h = ws[f"{COL[p]}5"]
             h.value = HEAD[p]
-            h.font, h.fill, h.alignment = font(WHITE, bold=True), FILL_HEAD, Alignment(horizontal="right")
+            h.font, h.alignment = font(WHITE, bold=True), Alignment(horizontal="right")
+            h.fill = FILL_FC_HEAD if p in FC else FILL_HEAD
             d = ws[f"{COL[p]}6"]
             d.value = PERIOD_END[p]
             d.font, d.alignment = font(GREY, italic=True), Alignment(horizontal="right")
+        if forecast:
+            ws["H4"] = "Forecast (scenario: Assumptions!B3)"
+            ws["H4"].font = font(TEAL, bold=True, size=9)
         if any(p in periods for p in INTERIM):
-            ws["I4"] = "Interim (six months)"
-            ws["I4"].font = font(GREY, italic=True)
+            ws["N4"] = "Interim"
+            ws["N4"].font = font(GREY, italic=True)
         ws.freeze_panes = "C7"
+        self.cols = cols
 
     def section(self, text: str):
         self.r += 1
-        for c in ["A", "B"] + [COL[p] for p in self.periods]:
+        for c in ["A", "B"] + [COL[p] for p in self.cols]:
             self.ws[f"{c}{self.r}"].fill = FILL_SECTION
         self.ws[f"A{self.r}"] = text
         self.ws[f"A{self.r}"].font = font(NAVY, bold=True)
         self.r += 1
 
-    def line(self, key, label, fn, fmt=F_NUM, style="formula", bold=False, note="", periods=None, total=False):
+    def line(self, key, label, fn=None, fc=None, fmt=F_NUM, style="formula", fc_style="formula", bold=False,
+             note="", periods=None, total=False):
+        """fn(p) -> value for historical/interim periods (written now); fc(p) -> forecast formula (deferred)."""
         row = self.r
         REG[(self.name, key)] = row
         ws = self.ws
@@ -127,21 +169,25 @@ class Sheet:
         if note:
             ws[f"B{row}"] = note
             ws[f"B{row}"].font = font(GREY, italic=True, size=9)
-        for p in periods or self.periods:
-            v = fn(p)
-            if v is None:
-                continue
-            c = ws[f"{COL[p]}{row}"]
-            c.value = v
-            color = STYLE_COLOR[style]
-            if style == "link" and isinstance(v, str) and not LINK_RE.match(v):
-                color = BLACK  # a formula combining links is a calculation, not a link
-            c.font = font(color, bold=bold or total)
-            c.number_format = fmt
-            if total:
-                c.border = THIN_TOP
+        if fn is not None:
+            for p in periods or self.periods:
+                self._write(row, p, fn(p), fmt, style, bold or total, total)
+        if fc is not None and self.forecast:
+            PENDING.append((self, row, fc, fmt, fc_style, bold or total, total))
         self.r += 1
         return row
+
+    def _write(self, row, p, v, fmt, style, bold, total):
+        if v is None:
+            return
+        c = self.ws[f"{COL[p]}{row}"]
+        c.value = v
+        c.font = font(color_for(style, v), bold=bold)
+        c.number_format = fmt
+        if p in FC:
+            c.fill = FILL_FC
+        if total:
+            c.border = THIN_TOP
 
     def ref(self, key, p):
         return f"{COL[p]}{REG[(self.name, key)]}"
@@ -150,13 +196,21 @@ class Sheet:
         self.r += n
 
 
+def finalize() -> None:
+    for sh, row, fc, fmt, style, bold, total in PENDING:
+        for p in FC:
+            sh._write(row, p, fc(p), fmt, style, bold, total)
+    PENDING.clear()
+
+
 # ---------------------------------------------------------------- data
 def load():
     h = pd.read_csv(PROCESSED / "historicals.csv", index_col=0)
     s = pd.read_csv(PROCESSED / "segments.csv")
     lines = pd.read_csv(PROCESSED / "fs_lines.csv")
     checks = pd.read_csv(PROCESSED / "checks.csv")
-    return h, s, lines, checks
+    a = pd.read_csv(ASSUMPTIONS)
+    return h, s, lines, checks, a
 
 
 HIST_LABELS = {
@@ -223,7 +277,7 @@ SKIP_BS_PERIODS = set()  # all historical columns carry a balance sheet (1H = 30
 def build_historicals(wb, h, checks):
     sh = Sheet(wb, "Historicals", "Historical financial statements - as reported",
                "NT$ million (reported in NT$ thousands, shown /1,000). Taiwan IFRS, consolidated. Blue = hard-coded "
-               "from the filings; page reference for every value in data/sources.csv.")
+               "from the filings; page reference for every value in data/sources.csv.", forecast=False)
     ws = sh.ws
     docs = {**{p: f"fs_{p[2:]}_annual_consolidated.pdf" for p in FY},
             "1H25": "fs_2026q2_consolidated.pdf (comparative)", "1H26": "fs_2026q2_consolidated.pdf"}
@@ -256,187 +310,242 @@ def H(key, p):
     return ref("Historicals", key, p)
 
 
+def X(sheet, key, p):
+    return ref(sheet, key, p)
+
+
 def build_is(wb):
-    sh = Sheet(wb, "IS", "Income statement", "NT$ million unless stated. Lines link to Historicals; subtotals are "
-               "recomputed (not copied) and tested against reported figures on the Checks sheet.")
+    sh = Sheet(wb, "IS", "Income statement",
+               "NT$ million unless stated. Historicals link to Historicals and recompute every subtotal; forecast "
+               "EBIT is built from segments (revenue x margin), with gross margin and R&D as inputs and SG&A the balance.")
     lk = lambda k: (lambda p: f"={H(k, p)}")  # noqa: E731
+    S = lambda k, p: X("Segments", k, p)  # noqa: E731
     sh.section("Income statement")
-    sh.line("revenue", "Revenue", lk("revenue"), style="link", bold=True)
-    sh.line("cogs", "Cost of revenue", lk("cogs"), style="link")
-    sh.line("gross_profit", "Gross profit", lambda p: f"={sh.ref('revenue', p)}+{sh.ref('cogs', p)}", total=True)
-    sh.line("selling", "Selling expenses", lk("selling"), style="link")
-    sh.line("g_and_a", "General and administrative", lk("g_and_a"), style="link")
-    sh.line("r_and_d", "Research and development", lk("r_and_d"), style="link")
+    sh.line("revenue", "Revenue", lk("revenue"), fc=lambda p: f"={S('rev_total', p)}", style="link",
+            fc_style="link", bold=True)
+    sh.line("cogs", "Cost of revenue", lk("cogs"),
+            fc=lambda p: f"=-{sh.ref('revenue', p)}*(1-{A('gross_margin', p)})", style="link")
+    sh.line("gross_profit", "Gross profit", lambda p: f"={sh.ref('revenue', p)}+{sh.ref('cogs', p)}",
+            fc=lambda p: f"={sh.ref('revenue', p)}+{sh.ref('cogs', p)}", total=True)
+    sh.line("sga", "Selling, general and administrative",
+            lambda p: f"={H('selling', p)}+{H('g_and_a', p)}",
+            fc=lambda p: f"={S('op_total', p)}-{sh.ref('gross_profit', p)}-{sh.ref('r_and_d', p)}",
+            note="forecast: balancing item to segment EBIT")
+    sh.line("r_and_d", "Research and development", lk("r_and_d"),
+            fc=lambda p: f"=-{A('rnd_pct', p)}*{sh.ref('revenue', p)}", style="link")
     sh.line("credit_loss", "Expected credit loss", lk("credit_loss"), style="link")
-    sh.line("opex", "Total operating expenses",
-            lambda p: f"=SUM({sh.ref('selling', p)}:{sh.ref('credit_loss', p)})", total=True)
-    sh.line("ebit", "Operating profit (EBIT)", lambda p: f"={sh.ref('gross_profit', p)}+{sh.ref('opex', p)}",
-            total=True)
-    sh.line("interest_income", "Interest income", lk("interest_income"), style="link")
-    sh.line("finance_costs", "Finance costs", lk("finance_costs"), style="link")
+    sum_opex = lambda p: f"=SUM({sh.ref('sga', p)}:{sh.ref('credit_loss', p)})"  # noqa: E731
+    sh.line("opex", "Total operating expenses", sum_opex, fc=sum_opex, total=True)
+    ebit = lambda p: f"={sh.ref('gross_profit', p)}+{sh.ref('opex', p)}"  # noqa: E731
+    sh.line("ebit", "Operating profit (EBIT)", ebit, fc=ebit, total=True)
+    sh.line("interest_income", "Interest income", lk("interest_income"),
+            fc=lambda p: f"={A('cash_yield', p)}*{X('BS', 'cash', PREV_BS[p])}", style="link",
+            note="forecast: yield x opening cash")
+    sh.line("finance_costs", "Finance costs", lk("finance_costs"),
+            fc=lambda p: f"=-{A('cost_debt', p)}*{X('BS', 'total_debt', PREV_BS[p])}", style="link",
+            note="forecast: cost of debt x opening debt")
     sh.line("other_nonop", "Other non-operating items",
             lambda p: f"={H('other_income', p)}+{H('other_gains_losses', p)}+{H('equity_method_income', p)}",
+            fc=lambda p: f"={A('other_nonop_pct', p)}*{sh.ref('revenue', p)}",
             note="other income, gains/losses, associates")
-    sh.line("nonop", "Total non-operating income",
-            lambda p: f"=SUM({sh.ref('interest_income', p)}:{sh.ref('other_nonop', p)})", total=True)
-    sh.line("pbt", "Profit before tax", lambda p: f"={sh.ref('ebit', p)}+{sh.ref('nonop', p)}", total=True)
-    sh.line("tax", "Income tax", lk("tax"), style="link")
-    sh.line("net_income", "Net income", lambda p: f"={sh.ref('pbt', p)}+{sh.ref('tax', p)}", total=True)
-    sh.line("ni_nci", "Less: non-controlling interests", lambda p: f"=-{H('ni_nci', p)}", style="link")
-    sh.line("ni_parent", "Net income to owners of the parent",
-            lambda p: f"={sh.ref('net_income', p)}+{sh.ref('ni_nci', p)}", total=True)
+    sum_nonop = lambda p: f"=SUM({sh.ref('interest_income', p)}:{sh.ref('other_nonop', p)})"  # noqa: E731
+    sh.line("nonop", "Total non-operating income", sum_nonop, fc=sum_nonop, total=True)
+    pbt = lambda p: f"={sh.ref('ebit', p)}+{sh.ref('nonop', p)}"  # noqa: E731
+    sh.line("pbt", "Profit before tax", pbt, fc=pbt, total=True)
+    sh.line("tax", "Income tax", lk("tax"), fc=lambda p: f"=-{A('etr', p)}*{sh.ref('pbt', p)}", style="link")
+    ni = lambda p: f"={sh.ref('pbt', p)}+{sh.ref('tax', p)}"  # noqa: E731
+    sh.line("net_income", "Net income", ni, fc=ni, total=True)
+    sh.line("ni_nci", "Less: non-controlling interests", lambda p: f"=-{H('ni_nci', p)}",
+            fc=lambda p: f"=-{A('nci_pct', p)}*{sh.ref('net_income', p)}", style="link")
+    nip = lambda p: f"={sh.ref('net_income', p)}+{sh.ref('ni_nci', p)}"  # noqa: E731
+    sh.line("ni_parent", "Net income to owners of the parent", nip, fc=nip, total=True)
     sh.blank()
     sh.line("shares", "Shares outstanding, period end (m)",
             lambda p: f"={H('share_capital', p)}/{H('par_value', p)}",
-            note="share capital / NT$10 par")
-    sh.line("eps", "EPS, basic (NT$)", lambda p: f"={sh.ref('ni_parent', p)}/{sh.ref('shares', p)}", fmt=F_EPS,
-            bold=True, note="computed; reported EPS on Historicals")
+            fc=lambda p: f"={sh.ref('shares', PREV[p])}", note="share capital / NT$10 par; held flat")
+    eps = lambda p: f"={sh.ref('ni_parent', p)}/{sh.ref('shares', p)}"  # noqa: E731
+    sh.line("eps", "EPS, basic (NT$)", eps, fc=eps, fmt=F_EPS, bold=True, note="reported EPS on Historicals")
     sh.section("Memo")
     sh.line("d_and_a", "Depreciation and amortisation",
-            lambda p: f"={H('depreciation', p)}+{H('amortisation', p)}", note="from cash flow statement")
-    sh.line("ebitda", "EBITDA (EBIT + D&A)", lambda p: f"={sh.ref('ebit', p)}+{sh.ref('d_and_a', p)}", bold=True,
-            note="operating definition (decision D3)")
+            lambda p: f"={H('depreciation', p)}+{H('amortisation', p)}",
+            fc=lambda p: f"=-{X('Schedules', 'dep', p)}+{X('Schedules', 'amort', p)}",
+            note="historical: cash flow statement")
+    ebitda = lambda p: f"={sh.ref('ebit', p)}+{sh.ref('d_and_a', p)}"  # noqa: E731
+    sh.line("ebitda", "EBITDA (EBIT + D&A)", ebitda, fc=ebitda, bold=True, note="operating definition (decision D3)")
     sh.section("Ratios")
     growth = lambda k: (lambda p: f"={sh.ref(k, p)}/{sh.ref(k, PREV[p])}-1" if p in PREV else None)  # noqa: E731
-    sh.line("rev_growth", "Revenue growth (y/y)", growth("revenue"), fmt=F_PCT,
-            note="1H26 vs 1H25")
     pct = lambda k, sign="": (lambda p: f"={sign}{sh.ref(k, p)}/{sh.ref('revenue', p)}")  # noqa: E731
-    sh.line("gm", "Gross margin", pct("gross_profit"), fmt=F_PCT)
-    sh.line("rnd_pct", "R&D % of revenue", pct("r_and_d", "-"), fmt=F_PCT)
-    sh.line("sga_pct", "SG&A % of revenue",
-            lambda p: f"=-({sh.ref('selling', p)}+{sh.ref('g_and_a', p)})/{sh.ref('revenue', p)}", fmt=F_PCT)
-    sh.line("ebit_margin", "EBIT margin", pct("ebit"), fmt=F_PCT, bold=True)
-    sh.line("ebitda_margin", "EBITDA margin", pct("ebitda"), fmt=F_PCT)
-    sh.line("etr", "Effective tax rate", lambda p: f"=-{sh.ref('tax', p)}/{sh.ref('pbt', p)}", fmt=F_PCT)
-    sh.line("ni_margin", "Net margin (to parent)", pct("ni_parent"), fmt=F_PCT)
-    sh.line("eps_growth", "EPS growth (y/y)", growth("eps"), fmt=F_PCT)
+    for key, label, f, kw in (
+            ("rev_growth", "Revenue growth (y/y)", growth("revenue"), {"note": "1H26 vs 1H25"}),
+            ("gm", "Gross margin", pct("gross_profit"), {}),
+            ("rnd_pct", "R&D % of revenue", pct("r_and_d", "-"), {}),
+            ("sga_pct", "SG&A % of revenue", pct("sga", "-"), {}),
+            ("ebit_margin", "EBIT margin", pct("ebit"), {"bold": True}),
+            ("ebitda_margin", "EBITDA margin", pct("ebitda"), {}),
+            ("etr", "Effective tax rate", lambda p: f"=-{sh.ref('tax', p)}/{sh.ref('pbt', p)}", {}),
+            ("ni_margin", "Net margin (to parent)", pct("ni_parent"), {}),
+            ("eps_growth", "EPS growth (y/y)", growth("eps"), {})):
+        sh.line(key, label, f, fc=f, fmt=F_PCT, **kw)
     return sh
 
 
 def build_bs(wb):
-    sh = Sheet(wb, "BS", "Balance sheet", "NT$ million, period end. 'Other' lines are the reported subtotal less "
-               "the lines shown, so each section ties to the reported figure; the Checks sheet tests that total "
-               "assets equal total liabilities plus equity.")
+    sh = Sheet(wb, "BS", "Balance sheet",
+               "NT$ million, period end. Historical 'other' lines tie each section to a separately reported subtotal. "
+               "Forecast: working capital from days, PP&E and intangibles from Schedules, cash from the cash flow "
+               "statement, other items held flat. Assets = liabilities + equity is tested on Checks.")
     lk = lambda k: (lambda p: f"={H(k, p)}")  # noqa: E731
     s = lambda *ks: (lambda p: "=" + "+".join(H(k, p) for k in ks))  # noqa: E731
+    flat = lambda k: (lambda p: f"={sh.ref(k, PREV_BS[p])}")  # noqa: E731
+    IS = lambda k, p: X("IS", k, p)  # noqa: E731
+    days = "'Schedules'!$B$4"
     sh.section("Assets")
-    sh.line("cash", "Cash and cash equivalents", lk("cash"), style="link")
+    sh.line("cash", "Cash and cash equivalents", lk("cash"), fc=lambda p: f"={X('CF', 'cash_close', p)}",
+            style="link", fc_style="link", note="forecast: from cash flow statement")
     sh.line("st_investments", "Short-term investments", s("fvtpl_current", "fvoci_current", "amortised_cost_current"),
-            note="FVTPL + FVOCI + amortised cost")
+            fc=flat("st_investments"), note="FVTPL + FVOCI + amortised cost")
     sh.line("receivables", "Receivables", s("notes_receivable", "accounts_receivable", "ar_related"),
-            note="notes + trade + related parties")
-    sh.line("inventories", "Inventories", lk("inventories"), style="link")
+            fc=lambda p: f"={A('dso', p)}/{days}*{IS('revenue', p)}", note="notes + trade + related; DSO")
+    sh.line("inventories", "Inventories", lk("inventories"), fc=lambda p: f"={A('dio', p)}/{days}*-{IS('cogs', p)}",
+            style="link", note="forecast: DIO")
     sh.line("other_ca", "Other current assets",
             lambda p: f"={H('total_current_assets', p)}-SUM({sh.ref('cash', p)}:{sh.ref('inventories', p)})",
-            note="incl. contract assets, prepayments, tax")
-    sh.line("tca", "Total current assets", lambda p: f"=SUM({sh.ref('cash', p)}:{sh.ref('other_ca', p)})",
-            total=True)
+            fc=lambda p: f"={A('other_ca_pct', p)}*{IS('revenue', p)}", note="contract assets, prepayments, tax")
+    tca = lambda p: f"=SUM({sh.ref('cash', p)}:{sh.ref('other_ca', p)})"  # noqa: E731
+    sh.line("tca", "Total current assets", tca, fc=tca, total=True)
     sh.line("lt_investments", "Long-term investments",
-            s("fvtpl_noncurrent", "fvoci_noncurrent", "amortised_cost_noncurrent", "equity_method_investments"))
-    sh.line("ppe", "Property, plant and equipment", lk("ppe"), style="link")
-    sh.line("rou", "Right-of-use assets", lk("right_of_use"), style="link")
-    sh.line("intangibles", "Intangible assets (incl. goodwill)", lk("intangibles"), style="link")
+            s("fvtpl_noncurrent", "fvoci_noncurrent", "amortised_cost_noncurrent", "equity_method_investments"),
+            fc=flat("lt_investments"))
+    sh.line("ppe", "Property, plant and equipment", lk("ppe"), fc=lambda p: f"={X('Schedules', 'ppe_close', p)}",
+            style="link", fc_style="link")
+    sh.line("rou", "Right-of-use assets", lk("right_of_use"), fc=flat("rou"), style="link")
+    sh.line("intangibles", "Intangible assets (incl. goodwill)", lk("intangibles"),
+            fc=lambda p: f"={X('Schedules', 'int_close', p)}", style="link", fc_style="link")
     sh.line("other_nca", "Other non-current assets",
             lambda p: f"={H('total_noncurrent_assets', p)}-SUM({sh.ref('lt_investments', p)}:{sh.ref('intangibles', p)})",
-            note="incl. deferred tax, investment property")
-    sh.line("tnca", "Total non-current assets",
-            lambda p: f"=SUM({sh.ref('lt_investments', p)}:{sh.ref('other_nca', p)})", total=True)
-    sh.line("ta", "Total assets", lambda p: f"={sh.ref('tca', p)}+{sh.ref('tnca', p)}", bold=True, total=True)
+            fc=flat("other_nca"), note="deferred tax, investment property")
+    tnca = lambda p: f"=SUM({sh.ref('lt_investments', p)}:{sh.ref('other_nca', p)})"  # noqa: E731
+    sh.line("tnca", "Total non-current assets", tnca, fc=tnca, total=True)
+    ta = lambda p: f"={sh.ref('tca', p)}+{sh.ref('tnca', p)}"  # noqa: E731
+    sh.line("ta", "Total assets", ta, fc=ta, bold=True, total=True)
     sh.section("Liabilities and equity")
-    sh.line("st_debt", "Short-term debt", s("st_borrowings", "lt_debt_current"),
-            note="ST borrowings + current portion of LT debt")
+    sh.line("st_debt", "Short-term debt", s("st_borrowings", "lt_debt_current"), fc=flat("st_debt"),
+            note="ST borrowings + current LT debt; held flat")
     sh.line("payables", "Payables", s("notes_payable", "accounts_payable", "ap_related"),
-            note="notes + trade + related parties")
+            fc=lambda p: f"={A('dpo', p)}/{days}*-{IS('cogs', p)}", note="notes + trade + related; DPO")
     sh.line("other_cl", "Other current liabilities",
             lambda p: f"={H('total_current_liabilities', p)}-{sh.ref('st_debt', p)}-{sh.ref('payables', p)}",
-            note="incl. other payables, tax, contract liab., leases")
-    sh.line("tcl", "Total current liabilities", lambda p: f"=SUM({sh.ref('st_debt', p)}:{sh.ref('other_cl', p)})",
-            total=True)
-    sh.line("lt_debt", "Long-term debt", s("bonds_payable", "lt_borrowings"), note="bonds + LT borrowings")
-    sh.line("leases", "Lease liabilities (non-current)", lk("lease_liab_noncurrent"), style="link")
+            fc=lambda p: f"={A('other_cl_pct', p)}*{IS('revenue', p)}", note="other payables, tax, contract liab.")
+    tcl = lambda p: f"=SUM({sh.ref('st_debt', p)}:{sh.ref('other_cl', p)})"  # noqa: E731
+    sh.line("tcl", "Total current liabilities", tcl, fc=tcl, total=True)
+    sh.line("lt_debt", "Long-term debt", s("bonds_payable", "lt_borrowings"), fc=flat("lt_debt"),
+            note="bonds + LT borrowings; held flat")
+    sh.line("leases", "Lease liabilities (non-current)", lk("lease_liab_noncurrent"), fc=flat("leases"), style="link")
     sh.line("other_ncl", "Other non-current liabilities",
             lambda p: f"={H('total_noncurrent_liabilities', p)}-{sh.ref('lt_debt', p)}-{sh.ref('leases', p)}",
-            note="incl. deferred tax liabilities")
-    sh.line("tncl", "Total non-current liabilities",
-            lambda p: f"=SUM({sh.ref('lt_debt', p)}:{sh.ref('other_ncl', p)})", total=True)
-    sh.line("tl", "Total liabilities", lambda p: f"={sh.ref('tcl', p)}+{sh.ref('tncl', p)}", total=True)
-    sh.line("equity_parent", "Equity attributable to owners of the parent", lk("equity_parent"), style="link")
-    sh.line("nci", "Non-controlling interest", lk("nci"), style="link")
-    sh.line("te", "Total equity", lambda p: f"={sh.ref('equity_parent', p)}+{sh.ref('nci', p)}", total=True)
-    sh.line("tle", "Total liabilities and equity", lambda p: f"={sh.ref('tl', p)}+{sh.ref('te', p)}", bold=True,
-            total=True)
-    sh.line("bs_diff", "Balance check: assets - (liabilities + equity)",
-            lambda p: f"={sh.ref('ta', p)}-{sh.ref('tle', p)}", note="must be zero")
+            fc=flat("other_ncl"), note="deferred tax liabilities")
+    tncl = lambda p: f"=SUM({sh.ref('lt_debt', p)}:{sh.ref('other_ncl', p)})"  # noqa: E731
+    sh.line("tncl", "Total non-current liabilities", tncl, fc=tncl, total=True)
+    tl = lambda p: f"={sh.ref('tcl', p)}+{sh.ref('tncl', p)}"  # noqa: E731
+    sh.line("tl", "Total liabilities", tl, fc=tl, total=True)
+    sh.line("equity_parent", "Equity attributable to owners of the parent", lk("equity_parent"),
+            fc=lambda p: f"={sh.ref('equity_parent', PREV_BS[p])}+{IS('ni_parent', p)}+{X('CF', 'dividends', p)}",
+            style="link", note="forecast: + net income - dividends")
+    sh.line("nci", "Non-controlling interest", lk("nci"),
+            fc=lambda p: f"={sh.ref('nci', PREV_BS[p])}-{IS('ni_nci', p)}+{X('CF', 'dividends_nci', p)}", style="link")
+    te = lambda p: f"={sh.ref('equity_parent', p)}+{sh.ref('nci', p)}"  # noqa: E731
+    sh.line("te", "Total equity", te, fc=te, total=True)
+    tle = lambda p: f"={sh.ref('tl', p)}+{sh.ref('te', p)}"  # noqa: E731
+    sh.line("tle", "Total liabilities and equity", tle, fc=tle, bold=True, total=True)
+    diff = lambda p: f"={sh.ref('ta', p)}-{sh.ref('tle', p)}"  # noqa: E731
+    sh.line("bs_diff", "Balance check: assets - (liabilities + equity)", diff, fc=diff, note="must be zero")
     sh.section("Memo")
-    sh.line("total_debt", "Total debt", lambda p: f"={sh.ref('st_debt', p)}+{sh.ref('lt_debt', p)}", bold=True)
-    sh.line("net_debt", "Net debt / (net cash)",
-            lambda p: f"={sh.ref('total_debt', p)}-{sh.ref('cash', p)}-{sh.ref('st_investments', p)}",
-            note="debt - cash - ST investments; excl. leases")
-    sh.line("nwc", "Trade working capital",
-            lambda p: f"={sh.ref('receivables', p)}+{sh.ref('inventories', p)}-{sh.ref('payables', p)}",
-            note="receivables + inventories - payables")
+    td = lambda p: f"={sh.ref('st_debt', p)}+{sh.ref('lt_debt', p)}"  # noqa: E731
+    sh.line("total_debt", "Total debt", td, fc=td, bold=True)
+    nd = lambda p: f"={sh.ref('total_debt', p)}-{sh.ref('cash', p)}-{sh.ref('st_investments', p)}"  # noqa: E731
+    sh.line("net_debt", "Net debt / (net cash)", nd, fc=nd, note="debt - cash - ST investments; excl. leases")
+    nwc = lambda p: f"={sh.ref('receivables', p)}+{sh.ref('inventories', p)}-{sh.ref('payables', p)}"  # noqa: E731
+    sh.line("nwc", "Trade working capital", nwc, fc=nwc, note="receivables + inventories - payables")
     return sh
 
 
-def build_cf(wb, bs):
-    sh = Sheet(wb, "CF", "Cash flow statement", "NT$ million. Indirect method as reported (Taiwan IFRS: interest "
-               "and tax paid sit in operating cash flow). 'Other' lines tie each section to the reported total; "
-               "closing cash is tested against the balance sheet on the Checks sheet.")
+def build_cf(wb):
+    sh = Sheet(wb, "CF", "Cash flow statement",
+               "NT$ million. Historicals as reported (Taiwan IFRS: interest and tax paid sit in operating cash flow); "
+               "'other' lines tie each section to the reported total. Forecast: indirect method from the IS and BS; "
+               "closing cash feeds the balance sheet.")
     lk = lambda k: (lambda p: f"={H(k, p)}")  # noqa: E731
+    BS = lambda k, p: X("BS", k, p)  # noqa: E731
+    IS = lambda k, p: X("IS", k, p)  # noqa: E731
+    SC = lambda k, p: X("Schedules", k, p)  # noqa: E731
+
+    def chg(k, sign=-1):
+        return lambda p: f"={'-' if sign < 0 else ''}({BS(k, p)}-{BS(k, PREV_BS[p])})"
     sh.section("Operating activities")
-    sh.line("pbt", "Profit before tax", lk("cf_pbt"), style="link")
-    sh.line("d_and_a", "Depreciation and amortisation", lambda p: f"={H('depreciation', p)}+{H('amortisation', p)}")
-    sh.line("chg_ar", "(Increase) decrease in accounts receivable", lk("cf_change_ar"), style="link")
-    sh.line("chg_inv", "(Increase) decrease in inventories", lk("cf_change_inventories"), style="link")
-    sh.line("chg_ap", "Increase (decrease) in accounts payable", lk("cf_change_ap"), style="link")
-    sh.line("interest_paid", "Interest paid", lk("interest_paid"), style="link")
-    sh.line("taxes_paid", "Income taxes paid", lk("taxes_paid"), style="link")
+    sh.line("pbt", "Profit before tax", lk("cf_pbt"), fc=lambda p: f"={IS('pbt', p)}", style="link", fc_style="link")
+    sh.line("d_and_a", "Depreciation and amortisation", lambda p: f"={H('depreciation', p)}+{H('amortisation', p)}",
+            fc=lambda p: f"={IS('d_and_a', p)}", fc_style="link")
+    sh.line("chg_ar", "(Increase) decrease in receivables", lk("cf_change_ar"), fc=chg("receivables"), style="link")
+    sh.line("chg_inv", "(Increase) decrease in inventories", lk("cf_change_inventories"), fc=chg("inventories"),
+            style="link")
+    sh.line("chg_ap", "Increase (decrease) in payables", lk("cf_change_ap"), fc=chg("payables", +1), style="link")
+    sh.line("interest_paid", "Interest paid", lk("interest_paid"), style="link", note="forecast: within PBT")
+    sh.line("taxes_paid", "Income taxes paid", lk("taxes_paid"), fc=lambda p: f"={IS('tax', p)}", style="link",
+            fc_style="link", note="forecast: cash tax = book tax")
     sh.line("other_op", "Other operating items",
             lambda p: f"={H('cfo', p)}-SUM({sh.ref('pbt', p)}:{sh.ref('taxes_paid', p)})",
-            note="non-cash items, other WC, interest received")
-    sh.line("cfo", "Cash flow from operations", lambda p: f"=SUM({sh.ref('pbt', p)}:{sh.ref('other_op', p)})",
-            total=True)
+            fc=lambda p: f"=-({BS('other_ca', p)}-{BS('other_ca', PREV_BS[p])})+({BS('other_cl', p)}-{BS('other_cl', PREV_BS[p])})",
+            note="hist: non-cash items, other WC; fcst: other WC")
+    cfo = lambda p: f"=SUM({sh.ref('pbt', p)}:{sh.ref('other_op', p)})"  # noqa: E731
+    sh.line("cfo", "Cash flow from operations", cfo, fc=cfo, total=True)
     sh.section("Investing activities")
-    sh.line("capex_ppe", "Purchase of PP&E", lk("capex_ppe"), style="link")
+    sh.line("capex_ppe", "Purchase of PP&E", lk("capex_ppe"), fc=lambda p: f"=-{SC('capex_ppe', p)}", style="link",
+            fc_style="link")
     sh.line("proceeds_ppe", "Disposal of PP&E", lk("proceeds_ppe"), style="link")
-    sh.line("capex_int", "Purchase of intangible assets", lk("capex_intangibles"), style="link")
+    sh.line("capex_int", "Purchase of intangible assets", lk("capex_intangibles"),
+            fc=lambda p: f"=-{SC('capex_int', p)}", style="link", fc_style="link")
     sh.line("acquisitions", "Acquisitions, net of cash acquired", lk("acquisitions"), style="link")
     sh.line("other_inv", "Other investing items",
             lambda p: f"={H('cfi', p)}-SUM({sh.ref('capex_ppe', p)}:{sh.ref('acquisitions', p)})",
             note="financial assets, prepayments, other")
-    sh.line("cfi", "Cash flow from investing", lambda p: f"=SUM({sh.ref('capex_ppe', p)}:{sh.ref('other_inv', p)})",
-            total=True)
+    cfi = lambda p: f"=SUM({sh.ref('capex_ppe', p)}:{sh.ref('other_inv', p)})"  # noqa: E731
+    sh.line("cfi", "Cash flow from investing", cfi, fc=cfi, total=True)
     sh.section("Financing activities")
     sh.line("net_borrowing", "Net borrowing / (repayment)",
             lambda p: "=" + "+".join(H(k, p) for k in ("st_borrowings_change", "bonds_issued", "bonds_repaid",
                                                        "lt_debt_proceeds", "lt_debt_repaid")),
-            note="ST + bonds + LT borrowings, net")
+            fc=lambda p: f"={BS('total_debt', p)}-{BS('total_debt', PREV_BS[p])}", note="ST + bonds + LT, net")
     sh.line("lease_principal", "Lease principal repaid", lk("lease_principal"), style="link")
-    sh.line("dividends", "Dividends paid to shareholders", lk("dividends_paid"), style="link",
-            note="paid in Q3; nil in 1H")
-    sh.line("dividends_nci", "Dividends paid to non-controlling interests", lk("dividends_paid_nci"), style="link")
+    sh.line("dividends", "Dividends paid to shareholders", lk("dividends_paid"),
+            fc=lambda p: (f"=-{A26('dps_2026')}*{IS('shares', 'FY2025')}" if p == "FY2026"
+                          else f"=-{A('payout', p)}*{IS('ni_parent', PREV[p])}"),
+            style="link", note="paid in Q3; FY2026 = NT$11.6 x shares")
+    sh.line("dividends_nci", "Dividends paid to non-controlling interests", lk("dividends_paid_nci"),
+            fc=lambda p: f"={A('nci_div_pct', p)}*{IS('ni_nci', PREV[p])}", style="link")
     sh.line("other_fin", "Other financing items",
             lambda p: f"={H('cff', p)}-SUM({sh.ref('net_borrowing', p)}:{sh.ref('dividends_nci', p)})",
             note="deposits, NCI transactions")
-    sh.line("cff", "Cash flow from financing",
-            lambda p: f"=SUM({sh.ref('net_borrowing', p)}:{sh.ref('other_fin', p)})", total=True)
+    cff = lambda p: f"=SUM({sh.ref('net_borrowing', p)}:{sh.ref('other_fin', p)})"  # noqa: E731
+    sh.line("cff", "Cash flow from financing", cff, fc=cff, total=True)
     sh.blank()
-    sh.line("fx", "Effect of exchange rates", lk("fx_effect"), style="link")
-    sh.line("net_change", "Net change in cash",
-            lambda p: f"={sh.ref('cfo', p)}+{sh.ref('cfi', p)}+{sh.ref('cff', p)}+{sh.ref('fx', p)}", total=True)
+    sh.line("fx", "Effect of exchange rates", lk("fx_effect"), style="link", note="forecast: nil")
+    net = lambda p: f"={sh.ref('cfo', p)}+{sh.ref('cfi', p)}+{sh.ref('cff', p)}+{sh.ref('fx', p)}"  # noqa: E731
+    sh.line("net_change", "Net change in cash", net, fc=net, total=True)
     sh.line("cash_open", "Cash at beginning of period",
-            lambda p: f"='BS'!{COL[PREV_BS[p]]}{REG[('BS', 'cash')]}" if p in PREV_BS else f"={H('cash_begin', p)}",
-            style="link", note="prior balance sheet; FY2021 from CF")
-    sh.line("cash_close", "Cash at end of period",
-            lambda p: f"={sh.ref('cash_open', p)}+{sh.ref('net_change', p)}", bold=True, total=True)
+            lambda p: f"={BS('cash', PREV_BS[p])}" if p in PREV_BS else f"={H('cash_begin', p)}",
+            fc=lambda p: f"={BS('cash', PREV_BS[p])}", style="link", fc_style="link",
+            note="prior balance sheet; FY2021 from CF")
+    close = lambda p: f"={sh.ref('cash_open', p)}+{sh.ref('net_change', p)}"  # noqa: E731
+    sh.line("cash_close", "Cash at end of period", close, fc=close, bold=True, total=True)
     sh.section("Memo")
-    sh.line("capex", "Capex (PP&E + intangibles)",
-            lambda p: f"={sh.ref('capex_ppe', p)}+{sh.ref('capex_int', p)}", note="decision D4")
-    sh.line("fcf", "Free cash flow (CFO + capex)", lambda p: f"={sh.ref('cfo', p)}+{sh.ref('capex', p)}", bold=True)
-    sh.line("fcf_margin", "FCF margin", lambda p: f"={sh.ref('fcf', p)}/'IS'!{COL[p]}{REG[('IS', 'revenue')]}",
-            fmt=F_PCT)
-    sh.line("cash_conversion", "Cash conversion (CFO / net income)",
-            lambda p: f"={sh.ref('cfo', p)}/'IS'!{COL[p]}{REG[('IS', 'net_income')]}", fmt=F_X)
+    capex = lambda p: f"={sh.ref('capex_ppe', p)}+{sh.ref('capex_int', p)}"  # noqa: E731
+    sh.line("capex", "Capex (PP&E + intangibles)", capex, fc=capex, note="decision D4")
+    fcf = lambda p: f"={sh.ref('cfo', p)}+{sh.ref('capex', p)}"  # noqa: E731
+    sh.line("fcf", "Free cash flow (CFO + capex)", fcf, fc=fcf, bold=True)
+    fm = lambda p: f"={sh.ref('fcf', p)}/{IS('revenue', p)}"  # noqa: E731
+    sh.line("fcf_margin", "FCF margin", fm, fc=fm, fmt=F_PCT)
+    cc = lambda p: f"={sh.ref('cfo', p)}/{IS('net_income', p)}"  # noqa: E731
+    sh.line("cash_conversion", "Cash conversion (CFO / net income)", cc, fc=cc, fmt=F_X)
     return sh
 
 
@@ -445,196 +554,302 @@ SEG_KEY = {"Power Electronics": "pe", "Infrastructure": "infra", "Automation": "
 
 
 def build_segments(wb, segs):
-    sh = Sheet(wb, "Segments", "Segment revenue and profit",
-               "NT$ million. Source: operating segment note, latest restated basis. FY2021-22 are on Delta's old "
-               "3-segment basis (Mobility inside Power Electronics), so FY2023 growth is not shown for Power Electronics or "
-               "Mobility. Infrastructure and Automation were restated by <0.3% and are shown.")
+    periods = PERIODS + SLIDE
+    sh = Sheet(wb, "Segments", "Segment build: revenue, AI data-centre line and profit",
+               "NT$ million. Historicals: segment note (latest restated basis; FY2021-22 on the old 3-segment basis). "
+               "3Q26A/9M26A: 3Q26 earnings slides. FY2026E = 9M26 actual + 4Q26E split by 3Q26 mix; FY2027E+ = "
+               "AI data-centre lines + non-AI drivers.", periods=periods)
+    ws = sh.ws
+    ws["P4"] = "3Q26 earnings slides"
+    ws["P4"].font = font(GREY, italic=True)
     latest = segs[segs.latest]
-    get = lambda seg, item, p: latest[(latest.segment == seg) & (latest["item"] == item) & (latest.period == p)]  # noqa
-    IS = lambda k, p: f"'IS'!{COL[p]}{REG[('IS', k)]}"  # noqa: E731
+    IS = lambda k, p: X("IS", k, p)  # noqa: E731
 
     def val(seg, item):
         def f(p):
-            r = get(seg, item, p)
+            r = latest[(latest.segment == seg) & (latest["item"] == item) & (latest.period == p)]
             return None if r.empty else float(r.value.iloc[0]) / 1000
         return f
 
+    def fy26(k):
+        return f"={COL['9M26']}{REG[('Segments', k)]}+{A26('q4_revenue')}*{COL['3Q26']}{REG[('Segments', k)]}" \
+               f"/{COL['3Q26']}{REG[('Segments', 'rev_total')]}"
+
     sh.section("Revenue from external customers")
+    seg_fc = {
+        "pe": lambda p: fy26("rev_pe") if p == "FY2026" else f"={sh.ref('nonai_pe', p)}+{sh.ref('ai_pe', p)}",
+        "infra": lambda p: fy26("rev_infra") if p == "FY2026" else f"={sh.ref('nonai_infra', p)}+{sh.ref('ai_infra', p)}",
+        "auto": lambda p: fy26("rev_auto") if p == "FY2026" else f"={sh.ref('rev_auto', PREV[p])}*(1+{A('g_auto', p)})",
+        "mob": lambda p: fy26("rev_mob") if p == "FY2026" else f"={sh.ref('rev_mob', PREV[p])}*(1+{A('g_mob', p)})",
+    }
     for seg in SEGS:
-        sh.line(f"rev_{SEG_KEY[seg]}", seg, val(seg, "revenue"), style="input",
-                note="in PE before FY2023" if seg == "Mobility" else "segment note")
+        k = SEG_KEY[seg]
+        sh.line(f"rev_{k}", seg, val(seg, "revenue"), fc=seg_fc[k], style="input",
+                note="inside Power Electronics before FY2023" if seg == "Mobility" else "segment note / slides")
+    others_sl = val("Others (derived: group revenue - segment total)", "revenue")
     sh.line("rev_others", "Others / unallocated",
-            lambda p: f"={IS('revenue', p)}-SUM({sh.ref('rev_pe', p)}:{sh.ref('rev_mob', p)})",
-            note="group revenue - segments ('Others')")
-    sh.line("rev_total", "Group revenue", lambda p: f"=SUM({sh.ref('rev_pe', p)}:{sh.ref('rev_others', p)})",
-            total=True)
+            lambda p: (others_sl(p) if p in SLIDE else
+                       f"={IS('revenue', p)}-SUM({sh.ref('rev_pe', p)}:{sh.ref('rev_mob', p)})"),
+            fc=lambda p: fy26("rev_others") if p == "FY2026" else
+            f"={A('others_pct', p)}*SUM({sh.ref('rev_pe', p)}:{sh.ref('rev_mob', p)})",
+            note="group revenue less segments")
+    tot = lambda p: f"=SUM({sh.ref('rev_pe', p)}:{sh.ref('rev_others', p)})"  # noqa: E731
+    sh.line("rev_total", "Group revenue", tot, fc=tot, total=True)
+
+    sh.section("AI data-centre revenue (forecast; decision D1 anchors on Assumptions)")
+    sh.line("ai_capex_g", "Hyperscaler / AI data-centre capex growth",
+            fc=lambda p: None if p == "FY2026" else f"={A('dc_capex_growth', p)}", fmt=F_PCT, fc_style="link")
+
+    def ai_line(share_key, content_key):
+        return lambda p: (f"={A26(share_key)}*{sh.ref('rev_total', p)}" if p == "FY2026" else
+                          f"={sh.ref(content_key.replace('content_', 'ai_'), PREV[p])}*(1+{A('dc_capex_growth', p)})"
+                          f"*(1+{A(content_key, p)})")
+    sh.line("ai_power", "AI power solutions", fc=ai_line("ai_power_share", "content_power"),
+            note="FY2026E: ~25% of revenue (mgmt)")
+    sh.line("ai_cooling", "Liquid cooling", fc=ai_line("ai_cooling_share", "content_cooling"),
+            note="FY2026E: ~13% of revenue (mgmt)")
+    sh.line("ai_other", "Other AI data-centre", fc=ai_line("ai_other_share", "content_other"),
+            note="FY2026E: ~50% total less power, cooling")
+    ait = lambda p: f"=SUM({sh.ref('ai_power', p)}:{sh.ref('ai_other', p)})"  # noqa: E731
+    sh.line("ai_total", "AI data-centre revenue", fc=ait, total=True)
+    sh.line("ai_share", "AI data-centre % of group revenue",
+            fc=lambda p: f"={sh.ref('ai_total', p)}/{sh.ref('rev_total', p)}", fmt=F_PCT, bold=True)
+    sh.line("ai_pe", "of which booked in Power Electronics",
+            fc=lambda p: f"={sh.ref('ai_power', p)}*{A26('alloc_power_pe')}+{sh.ref('ai_cooling', p)}*"
+                         f"{A26('alloc_cooling_pe')}+{sh.ref('ai_other', p)}*{A26('alloc_other_pe')}",
+            note="allocation not disclosed (analyst input)")
+    sh.line("ai_infra", "of which booked in Infrastructure",
+            fc=lambda p: f"={sh.ref('ai_total', p)}-{sh.ref('ai_pe', p)}")
+
+    sh.section("Revenue excluding AI data-centre (forecast)")
+    for k, g in (("pe", "g_pe_nonai"), ("infra", "g_infra_nonai")):
+        sh.line(f"nonai_{k}", f"{'Power Electronics' if k == 'pe' else 'Infrastructure'} excl. AI",
+                fc=lambda p, k=k, g=g: (f"={sh.ref('rev_' + k, p)}-{sh.ref('ai_' + k, p)}" if p == "FY2026" else
+                                        f"={sh.ref('nonai_' + k, PREV[p])}*(1+{A(g, p)})"),
+                note="FY2026E: segment less allocated AI")
+    sh.line("nonai_total", "Group revenue excl. AI data-centre",
+            fc=lambda p: f"={sh.ref('rev_total', p)}-{sh.ref('ai_total', p)}", total=True)
+
     sh.section("Segment operating profit")
     for seg in SEGS:
-        sh.line(f"op_{SEG_KEY[seg]}", seg, val(seg, "op_profit"), style="input", note="segment note")
-    sh.line("op_total", "Total segment profit", lambda p: f"=SUM({sh.ref('op_pe', p)}:{sh.ref('op_mob', p)})",
-            total=True, note="equals EBIT (tested on Checks)")
+        k = SEG_KEY[seg]
+        sh.line(f"op_{k}", seg, val(seg, "op_profit"),
+                fc=lambda p, k=k: f"={sh.ref('rev_' + k, p)}*{A('m_' + k, p)}", style="input",
+                note="segment note / slides; fcst rev x margin")
+    opt = lambda p: f"=SUM({sh.ref('op_pe', p)}:{sh.ref('op_mob', p)})"  # noqa: E731
+    sh.line("op_total", "Total segment profit (= EBIT)", opt, fc=opt, total=True,
+            note="Others assumed nil profit")
+
     sh.section("Revenue growth (y/y)")
     comparable = {"FY2022": SEGS[:3], "FY2023": ["Infrastructure", "Automation"], "FY2024": SEGS,
                   "FY2025": SEGS, "1H26": SEGS}
     for seg in SEGS:
         k = SEG_KEY[seg]
-        sh.line(f"g_{k}", seg, lambda p, s=seg, k=k: (f"={sh.ref('rev_' + k, p)}/{sh.ref('rev_' + k, PREV[p])}-1"
-                                                      if s in comparable.get(p, []) else None), fmt=F_PCT)
-    sh.line("g_total", "Group", lambda p: f"={sh.ref('rev_total', p)}/{sh.ref('rev_total', PREV[p])}-1"
-            if p in PREV else None, fmt=F_PCT, bold=True)
+        g = lambda p, k=k: f"={sh.ref('rev_' + k, p)}/{sh.ref('rev_' + k, PREV[p])}-1"  # noqa: E731
+        sh.line(f"g_{k}", seg, lambda p, s=seg, g=g: g(p) if s in comparable.get(p, []) else None, fc=g, fmt=F_PCT)
+    gt = lambda p: f"={sh.ref('rev_total', p)}/{sh.ref('rev_total', PREV[p])}-1"  # noqa: E731
+    sh.line("g_total", "Group", lambda p: gt(p) if p in PREV else None, fc=gt, fmt=F_PCT, bold=True)
+    sh.line("g_ai", "AI data-centre revenue",
+            fc=lambda p: None if p == "FY2026" else f"={sh.ref('ai_total', p)}/{sh.ref('ai_total', PREV[p])}-1",
+            fmt=F_PCT)
+    sh.line("g_nonai", "Revenue excl. AI data-centre",
+            fc=lambda p: None if p == "FY2026" else f"={sh.ref('nonai_total', p)}/{sh.ref('nonai_total', PREV[p])}-1",
+            fmt=F_PCT)
+
     sh.section("Revenue mix (% of group)")
     for seg in SEGS:
         k = SEG_KEY[seg]
-        sh.line(f"mix_{k}", seg, lambda p, k=k, s=seg: (None if s == "Mobility" and p in ("FY2021", "FY2022") else
-                                                        f"={sh.ref('rev_' + k, p)}/{sh.ref('rev_total', p)}"), fmt=F_PCT)
+        mx = lambda p, k=k: f"={sh.ref('rev_' + k, p)}/{sh.ref('rev_total', p)}"  # noqa: E731
+        sh.line(f"mix_{k}", seg, lambda p, s=seg, mx=mx: None if s == "Mobility" and p in ("FY2021", "FY2022")
+                else mx(p), fc=mx, fmt=F_PCT)
+
     sh.section("Segment margin (profit / revenue)")
     for seg in SEGS:
         k = SEG_KEY[seg]
-        sh.line(f"m_{k}", seg, lambda p, k=k, s=seg: (None if s == "Mobility" and p in ("FY2021", "FY2022") else
-                                                      f"={sh.ref('op_' + k, p)}/{sh.ref('rev_' + k, p)}"), fmt=F_PCT)
-    sh.line("m_total", "Group EBIT margin", lambda p: f"={sh.ref('op_total', p)}/{sh.ref('rev_total', p)}",
-            fmt=F_PCT, bold=True)
+        m = lambda p, k=k: f"={sh.ref('op_' + k, p)}/{sh.ref('rev_' + k, p)}"  # noqa: E731
+        sh.line(f"m_{k}", seg, lambda p, s=seg, m=m: None if s == "Mobility" and p in ("FY2021", "FY2022") else m(p),
+                fc=m, fmt=F_PCT)
+    mt = lambda p: f"={sh.ref('op_total', p)}/{sh.ref('rev_total', p)}"  # noqa: E731
+    sh.line("m_total", "Group EBIT margin", mt, fc=mt, fmt=F_PCT, bold=True)
 
-    # AI anchors (decision D1): Delta's own disclosures, used to build the AI line in M3
-    ws = sh.ws
+    # disclosed AI anchors (documentation; the inputs themselves live on Assumptions)
     sh.blank()
-    sh.section("AI data-centre anchors (management disclosures, decision D1) - the AI line is built from these in M3")
-    hdr = ["Anchor", "Source", "Period", "Share of revenue", "Qualifier", "Implied NT$ m"]
-    cols = ["A", "B", "C", "D", "E", "F"]
-    for c, t in zip(cols, hdr):
+    sh.section("AI data-centre disclosures by management (the evidence behind decision D1)")
+    hdr = ["Disclosure", "Source", "Period", "Share of revenue", "Qualifier", "Implied NT$ m"]
+    for c, t in zip("ABCDEF", hdr):
         ws[f"{c}{sh.r}"] = t
-        ws[f"{c}{sh.r}"].font = font(WHITE, bold=True)
-        ws[f"{c}{sh.r}"].fill = FILL_HEAD
+        ws[f"{c}{sh.r}"].font, ws[f"{c}{sh.r}"].fill = font(WHITE, bold=True), FILL_HEAD
     sh.r += 1
     anchors = [
-        ("Liquid-cooling products", "2Q26 transcript p.12", "FY2025", 0.10, "approx.", "FY2025"),
-        ("Liquid-cooling products", "2Q26 transcript p.12", "FY2026E", 0.12, "more than", None),
-        ("AI-related products", "2Q26 transcript p.12", "FY2026E", 0.25, "more than", None),
+        ("AI data-centre-related businesses (4 BUs)", "3Q26 transcript p.7", "2026", 0.50, "approx.", None),
+        ("AI power-related solutions", "3Q26 transcript p.7", "2026", 0.25, "approx.", None),
+        ("Liquid cooling (NT$25bn in 3Q26)", "3Q26 transcript p.7", "3Q26", 0.13, "approx.", None),
+        ("Liquid cooling", "2Q26 transcript p.12", "FY2025", 0.10, "approx.", "FY2025"),
         ("Data-centre-related business", "2Q26 transcript p.2", "1H26", 0.50, "more than", "1H26"),
     ]
     for name, src, per, share, qual, base in anchors:
         r = sh.r
         ws[f"A{r}"], ws[f"B{r}"], ws[f"C{r}"], ws[f"D{r}"], ws[f"E{r}"] = name, src, per, share, qual
         ws[f"D{r}"].font, ws[f"D{r}"].number_format = font(BLUE), F_PCT
-        ws[f"D{r}"].fill = FILL_KEY
-        ws[f"D{r}"].comment = Comment(f"Management statement, {src} (Delta 2Q26 results meeting, 30 Jul 2026). "
-                                      "Rounded; translated transcript (Mandarin prevails).", "model")
-        for c in ("A", "B", "C", "E"):
+        ws[f"D{r}"].comment = Comment(f"Management statement, {src}. Rounded; translated transcript "
+                                      "(Mandarin prevails).", "model")
+        for c in "ABCE":
             ws[f"{c}{r}"].font = font(size=9)
         if base:
             ws[f"F{r}"] = f"=D{r}*{IS('revenue', base)}"
-            ws[f"F{r}"].number_format = F_NUM
-            ws[f"F{r}"].font = font()
-        else:
-            ws[f"F{r}"] = "M3 forecast"
-            ws[f"F{r}"].font = font(GREY, italic=True, size=9)
-        REG[("Segments", f"anchor_{per}_{name[:6]}")] = r
+            ws[f"F{r}"].number_format, ws[f"F{r}"].font = F_NUM, font()
         sh.r += 1
-    ws[f"A{sh.r}"] = ("Not used: press-reported split (AI power >20%, AI cooling ~9% of FY2025 revenue) - not in "
-                      "Delta's own documents; TODO-SOURCE in sources.csv.")
+    ws[f"A{sh.r}"] = ("Clarified in 3Q26: the earlier '>25% AI-related' refers to power solutions only. Not used: the "
+                      "press-reported FY2025 split (AI power >20%, AI cooling ~9%) - not in Delta's own documents.")
     ws[f"A{sh.r}"].font = font(GREY, italic=True, size=9)
     return sh
 
 
 def build_schedules(wb):
-    sh = Sheet(wb, "Schedules", "Supporting schedules (historical)",
-               "NT$ million unless stated. Fiscal years only; ratios use year-end balances. These historical ratios "
-               "anchor the forecast drivers set on the Assumptions sheet in M3.", periods=FY)
+    sh = Sheet(wb, "Schedules", "Supporting schedules",
+               "NT$ million unless stated. Ratios use year-end balances. Historical ratios are the reference for the "
+               "forecast drivers on Assumptions; forecast columns apply those drivers.", periods=FY)
     ws = sh.ws
-    IS = lambda k, p: f"'IS'!{COL[p]}{REG[('IS', k)]}"  # noqa: E731
-    BS = lambda k, p: f"'BS'!{COL[p]}{REG[('BS', k)]}"  # noqa: E731
-    CF = lambda k, p: f"'CF'!{COL[p]}{REG[('CF', k)]}"  # noqa: E731
+    IS = lambda k, p: X("IS", k, p)  # noqa: E731
+    BS = lambda k, p: X("BS", k, p)  # noqa: E731
+    CF = lambda k, p: X("CF", k, p)  # noqa: E731
     ws["A4"], ws["B4"] = "Days in year", 365
     ws["B4"].font, ws["B4"].fill = font(BLUE), FILL_KEY
     days = "$B$4"
-    has_prev = lambda f: (lambda p: f(p) if p in PREV else None)  # noqa: E731
+    hp = lambda f: (lambda p: f(p) if p in PREV else None)  # noqa: E731
+    both = lambda f, **kw: dict(fn=f, fc=f, **kw)  # noqa: E731
 
     sh.section("Working capital")
-    sh.line("revenue", "Revenue", lambda p: f"={IS('revenue', p)}", style="link")
-    sh.line("cogs", "Cost of revenue (positive)", lambda p: f"=-{IS('cogs', p)}", style="link")
-    sh.line("receivables", "Receivables", lambda p: f"={BS('receivables', p)}", style="link")
-    sh.line("inventories", "Inventories", lambda p: f"={BS('inventories', p)}", style="link")
-    sh.line("payables", "Payables", lambda p: f"={BS('payables', p)}", style="link")
-    sh.line("dso", "Receivable days (DSO)",
-            lambda p: f"={sh.ref('receivables', p)}/{sh.ref('revenue', p)}*{days}", fmt=F_DAYS)
-    sh.line("dio", "Inventory days (DIO)",
-            lambda p: f"={sh.ref('inventories', p)}/{sh.ref('cogs', p)}*{days}", fmt=F_DAYS)
-    sh.line("dpo", "Payable days (DPO)", lambda p: f"={sh.ref('payables', p)}/{sh.ref('cogs', p)}*{days}",
+    sh.line("revenue", "Revenue", **both(lambda p: f"={IS('revenue', p)}"), style="link", fc_style="link")
+    sh.line("cogs", "Cost of revenue (positive)", **both(lambda p: f"=-{IS('cogs', p)}"), style="link", fc_style="link")
+    for k in ("receivables", "inventories", "payables"):
+        sh.line(k, k.capitalize(), **both(lambda p, k=k: f"={BS(k, p)}"), style="link", fc_style="link")
+    sh.line("dso", "Receivable days (DSO)", **both(lambda p: f"={sh.ref('receivables', p)}/{sh.ref('revenue', p)}*{days}"),
+            fmt=F_DAYS)
+    sh.line("dio", "Inventory days (DIO)", **both(lambda p: f"={sh.ref('inventories', p)}/{sh.ref('cogs', p)}*{days}"),
+            fmt=F_DAYS)
+    sh.line("dpo", "Payable days (DPO)", **both(lambda p: f"={sh.ref('payables', p)}/{sh.ref('cogs', p)}*{days}"),
             fmt=F_DAYS)
     sh.line("ccc", "Cash conversion cycle (days)",
-            lambda p: f"={sh.ref('dso', p)}+{sh.ref('dio', p)}-{sh.ref('dpo', p)}", fmt=F_DAYS, bold=True)
+            **both(lambda p: f"={sh.ref('dso', p)}+{sh.ref('dio', p)}-{sh.ref('dpo', p)}"), fmt=F_DAYS, bold=True)
     sh.line("other_ca_pct", "Other current assets % revenue",
-            lambda p: f"={BS('other_ca', p)}/{sh.ref('revenue', p)}", fmt=F_PCT)
+            **both(lambda p: f"={BS('other_ca', p)}/{sh.ref('revenue', p)}"), fmt=F_PCT)
     sh.line("other_cl_pct", "Other current liabilities % revenue",
-            lambda p: f"={BS('other_cl', p)}/{sh.ref('revenue', p)}", fmt=F_PCT)
+            **both(lambda p: f"={BS('other_cl', p)}/{sh.ref('revenue', p)}"), fmt=F_PCT)
+
+    sh.section("Capex")
+    sh.line("capex_total", "Total capex (PP&E + intangibles)", lambda p: f"=-{CF('capex', p)}",
+            fc=lambda p: f"={A26('capex_2026')}" if p == "FY2026" else f"={A('capex_pct', p)}*{sh.ref('revenue', p)}",
+            style="link", fc_style="link", note="FY2026E: mgmt ~NT$70bn", bold=True)
+    sh.line("capex_int", "of which intangibles", lambda p: f"=-{CF('capex_int', p)}",
+            fc=lambda p: f"={A('capex_int_pct', p)}*{sh.ref('revenue', p)}", style="link")
+    sh.line("capex_ppe", "of which PP&E", lambda p: f"=-{CF('capex_ppe', p)}",
+            fc=lambda p: f"={sh.ref('capex_total', p)}-{sh.ref('capex_int', p)}", style="link")
+    sh.line("capex_total_pct", "Total capex % revenue",
+            **both(lambda p: f"={sh.ref('capex_total', p)}/{sh.ref('revenue', p)}"), fmt=F_PCT, bold=True)
 
     sh.section("PP&E roll-forward")
-    sh.line("ppe_open", "Opening PP&E", has_prev(lambda p: f"={BS('ppe', PREV[p])}"), style="link")
-    sh.line("capex_ppe", "Add: purchases of PP&E", lambda p: f"=-{CF('capex_ppe', p)}", style="link")
-    sh.line("dep", "Less: depreciation", lambda p: f"=-'Historicals'!{COL[p]}{REG[('Historicals', 'depreciation')]}",
-            style="link", note="all depreciation incl. right-of-use")
+    sh.line("ppe_open", "Opening PP&E", hp(lambda p: f"={BS('ppe', PREV[p])}"), fc=lambda p: f"={BS('ppe', PREV[p])}",
+            style="link", fc_style="link")
+    sh.line("ppe_add", "Add: purchases of PP&E", **both(lambda p: f"={sh.ref('capex_ppe', p)}"))
+    sh.line("dep", "Less: depreciation", lambda p: f"=-{H('depreciation', p)}",
+            fc=lambda p: f"=-{A('dep_rate', p)}*{sh.ref('ppe_open', p)}", style="link",
+            note="hist: all depreciation incl. right-of-use")
     sh.line("ppe_other", "Other movements (plug)",
-            has_prev(lambda p: f"={BS('ppe', p)}-{sh.ref('ppe_open', p)}-{sh.ref('capex_ppe', p)}"
-                               f"-{sh.ref('dep', p)}"),
-            note="disposals, FX, M&A, add-back of ROU depreciation")
-    sh.line("ppe_close", "Closing PP&E", lambda p: f"={BS('ppe', p)}", style="link", total=True)
-    sh.line("capex_pct", "PP&E capex % revenue", lambda p: f"={sh.ref('capex_ppe', p)}/{sh.ref('revenue', p)}",
-            fmt=F_PCT)
-    sh.line("capex_total_pct", "Total capex (PP&E + intangibles) % revenue",
-            lambda p: f"=-{CF('capex', p)}/{sh.ref('revenue', p)}", fmt=F_PCT, bold=True)
+            hp(lambda p: f"={BS('ppe', p)}-{sh.ref('ppe_open', p)}-{sh.ref('ppe_add', p)}-{sh.ref('dep', p)}"),
+            note="disposals, FX, M&A, ROU add-back; fcst nil")
+    sh.line("ppe_close", "Closing PP&E", lambda p: f"={BS('ppe', p)}",
+            fc=lambda p: f"={sh.ref('ppe_open', p)}+{sh.ref('ppe_add', p)}+{sh.ref('dep', p)}", style="link",
+            total=True)
     sh.line("dep_rate", "Depreciation % opening PP&E",
-            has_prev(lambda p: f"=-{sh.ref('dep', p)}/{sh.ref('ppe_open', p)}"), fmt=F_PCT)
-    sh.line("da_pct", "D&A % revenue", lambda p: f"={IS('d_and_a', p)}/{sh.ref('revenue', p)}", fmt=F_PCT)
-    sh.line("capex_da", "Capex / D&A", lambda p: f"=-{CF('capex', p)}/{IS('d_and_a', p)}", fmt=F_X)
+            hp(lambda p: f"=-{sh.ref('dep', p)}/{sh.ref('ppe_open', p)}"),
+            fc=lambda p: f"=-{sh.ref('dep', p)}/{sh.ref('ppe_open', p)}", fmt=F_PCT)
+    sh.line("da_pct", "D&A % revenue", **both(lambda p: f"={IS('d_and_a', p)}/{sh.ref('revenue', p)}"), fmt=F_PCT)
+    sh.line("capex_da", "Capex / D&A", **both(lambda p: f"={sh.ref('capex_total', p)}/{IS('d_and_a', p)}"), fmt=F_X)
 
     sh.section("Intangibles")
-    sh.line("amort", "Amortisation", lambda p: f"='Historicals'!{COL[p]}{REG[('Historicals', 'amortisation')]}",
-            style="link")
-    sh.line("capex_int", "Purchases of intangibles", lambda p: f"=-{CF('capex_int', p)}", style="link")
-    sh.line("intangibles", "Intangible assets (incl. goodwill)", lambda p: f"={BS('intangibles', p)}", style="link")
+    sh.line("int_open", "Opening intangibles", hp(lambda p: f"={BS('intangibles', PREV[p])}"),
+            fc=lambda p: f"={BS('intangibles', PREV[p])}", style="link", fc_style="link")
+    sh.line("amort", "Amortisation", lambda p: f"={H('amortisation', p)}",
+            fc=lambda p: f"={A('amort_rate', p)}*{sh.ref('int_open', p)}", style="link")
+    sh.line("int_close", "Closing intangibles (incl. goodwill)", lambda p: f"={BS('intangibles', p)}",
+            fc=lambda p: f"={sh.ref('int_open', p)}+{sh.ref('capex_int', p)}-{sh.ref('amort', p)}", style="link",
+            total=True)
+    sh.line("amort_rate", "Amortisation % opening intangibles",
+            hp(lambda p: f"={sh.ref('amort', p)}/{sh.ref('int_open', p)}"),
+            fc=lambda p: f"={sh.ref('amort', p)}/{sh.ref('int_open', p)}", fmt=F_PCT)
+    sh.line("capex_int_pct", "Intangibles capex % revenue",
+            **both(lambda p: f"={sh.ref('capex_int', p)}/{sh.ref('revenue', p)}"), fmt=F_PCT)
 
     sh.section("Debt and interest")
-    sh.line("debt", "Total debt", lambda p: f"={BS('total_debt', p)}", style="link")
-    sh.line("avg_debt", "Average debt", has_prev(lambda p: f"=AVERAGE({sh.ref('debt', PREV[p])},{sh.ref('debt', p)})"))
-    sh.line("fin_cost", "Finance costs", lambda p: f"=-{IS('finance_costs', p)}", style="link",
-            note="incl. lease interest")
-    sh.line("cost_debt", "Implied cost of debt", has_prev(lambda p: f"={sh.ref('fin_cost', p)}/{sh.ref('avg_debt', p)}"),
-            fmt=F_PCT, bold=True)
-    sh.line("cash", "Cash and cash equivalents", lambda p: f"={BS('cash', p)}", style="link")
-    sh.line("avg_cash", "Average cash", has_prev(lambda p: f"=AVERAGE({sh.ref('cash', PREV[p])},{sh.ref('cash', p)})"))
-    sh.line("int_inc", "Interest income", lambda p: f"={IS('interest_income', p)}", style="link")
-    sh.line("cash_yield", "Yield on average cash", has_prev(lambda p: f"={sh.ref('int_inc', p)}/{sh.ref('avg_cash', p)}"),
-            fmt=F_PCT)
+    sh.line("debt", "Total debt", **both(lambda p: f"={BS('total_debt', p)}"), style="link", fc_style="link")
+    avg = lambda k: (lambda p: f"=AVERAGE({sh.ref(k, PREV[p])},{sh.ref(k, p)})")  # noqa: E731
+    sh.line("avg_debt", "Average debt", hp(avg("debt")), fc=avg("debt"))
+    sh.line("fin_cost", "Finance costs", **both(lambda p: f"=-{IS('finance_costs', p)}"), style="link",
+            fc_style="link", note="incl. lease interest")
+    sh.line("cost_debt", "Implied cost of debt (on average debt)",
+            hp(lambda p: f"={sh.ref('fin_cost', p)}/{sh.ref('avg_debt', p)}"),
+            fc=lambda p: f"={sh.ref('fin_cost', p)}/{sh.ref('avg_debt', p)}", fmt=F_PCT, bold=True)
+    sh.line("cash", "Cash and cash equivalents", **both(lambda p: f"={BS('cash', p)}"), style="link", fc_style="link")
+    sh.line("avg_cash", "Average cash", hp(avg("cash")), fc=avg("cash"))
+    sh.line("int_inc", "Interest income", **both(lambda p: f"={IS('interest_income', p)}"), style="link",
+            fc_style="link")
+    sh.line("cash_yield", "Yield on average cash", hp(lambda p: f"={sh.ref('int_inc', p)}/{sh.ref('avg_cash', p)}"),
+            fc=lambda p: f"={sh.ref('int_inc', p)}/{sh.ref('avg_cash', p)}", fmt=F_PCT)
 
     sh.section("Tax")
-    sh.line("etr", "Effective tax rate", lambda p: f"={IS('etr', p)}", style="link", fmt=F_PCT)
-    sh.line("cash_tax", "Cash taxes paid % PBT", lambda p: f"=-{CF('taxes_paid', p)}/{IS('pbt', p)}", fmt=F_PCT)
+    sh.line("etr", "Effective tax rate", **both(lambda p: f"={IS('etr', p)}"), style="link", fc_style="link",
+            fmt=F_PCT)
+    sh.line("cash_tax", "Cash taxes paid % PBT", lambda p: f"=-{CF('taxes_paid', p)}/{IS('pbt', p)}",
+            fc=lambda p: f"=-{CF('taxes_paid', p)}/{IS('pbt', p)}", fmt=F_PCT)
 
     sh.section("Shares, dividends and minorities")
-    sh.line("shares", "Shares outstanding (m)", lambda p: f"={IS('shares', p)}", style="link", fmt=F_NUM)
-    sh.line("div_paid", "Dividends paid in year", lambda p: f"=-{CF('dividends', p)}", style="link")
+    sh.line("shares", "Shares outstanding (m)", **both(lambda p: f"={IS('shares', p)}"), style="link",
+            fc_style="link")
+    sh.line("div_paid", "Dividends paid in year", **both(lambda p: f"=-{CF('dividends', p)}"), style="link",
+            fc_style="link")
     sh.line("dps_paid", "Dividend per share paid in year (NT$)",
-            lambda p: f"={sh.ref('div_paid', p)}/{sh.ref('shares', p)}", fmt=F_EPS)
+            **both(lambda p: f"={sh.ref('div_paid', p)}/{sh.ref('shares', p)}"), fmt=F_EPS)
     sh.line("payout", "Payout of prior-year net income",
-            has_prev(lambda p: f"={sh.ref('div_paid', p)}/{IS('ni_parent', PREV[p])}"), fmt=F_PCT, bold=True,
+            hp(lambda p: f"={sh.ref('div_paid', p)}/{IS('ni_parent', PREV[p])}"),
+            fc=lambda p: f"={sh.ref('div_paid', p)}/{IS('ni_parent', PREV[p])}", fmt=F_PCT, bold=True,
             note="Taiwan: dividend paid in year after earned")
+    sh.line("nci_div_pct", "Dividends to NCI % prior-year NCI profit",
+            hp(lambda p: f"={CF('dividends_nci', p)}/{IS('ni_nci', PREV[p])}"),
+            fc=lambda p: f"={CF('dividends_nci', p)}/{IS('ni_nci', PREV[p])}", fmt=F_PCT)
     sh.line("nci_share", "Non-controlling interests % net income",
-            lambda p: f"=-{IS('ni_nci', p)}/{IS('net_income', p)}", fmt=F_PCT)
+            **both(lambda p: f"=-{IS('ni_nci', p)}/{IS('net_income', p)}"), fmt=F_PCT)
 
     sh.section("Returns")
-    sh.line("roe", "Return on average equity (parent)",
-            has_prev(lambda p: f"={IS('ni_parent', p)}/AVERAGE({BS('equity_parent', PREV[p])},{BS('equity_parent', p)})"),
-            fmt=F_PCT, bold=True)
-    sh.line("asset_turn", "Revenue / average total assets",
-            has_prev(lambda p: f"={sh.ref('revenue', p)}/AVERAGE({BS('ta', PREV[p])},{BS('ta', p)})"), fmt=F_X)
+    roe = lambda p: f"={IS('ni_parent', p)}/AVERAGE({BS('equity_parent', PREV[p])},{BS('equity_parent', p)})"  # noqa
+    sh.line("roe", "Return on average equity (parent)", hp(roe), fc=roe, fmt=F_PCT, bold=True)
+    at = lambda p: f"={sh.ref('revenue', p)}/AVERAGE({BS('ta', PREV[p])},{BS('ta', p)})"  # noqa: E731
+    sh.line("asset_turn", "Revenue / average total assets", hp(at), fc=at, fmt=F_X)
     return sh
 
 
-def build_assumptions(wb):
+UNIT_FMT = {"pct": F_PCT, "days": F_DAYS, "ntd_m": F_NUM, "ntd": F_EPS}
+UNIT_LABEL = {"pct": "%", "days": "days", "ntd_m": "NT$ m", "ntd": "NT$"}
+HIST_REF = {
+    "gross_margin": ("IS", "gm"), "rnd_pct": ("IS", "rnd_pct"), "etr": ("IS", "etr"),
+    "nci_pct": ("Schedules", "nci_share"), "dso": ("Schedules", "dso"), "dio": ("Schedules", "dio"),
+    "dpo": ("Schedules", "dpo"), "capex_pct": ("Schedules", "capex_total_pct"), "dep_rate": ("Schedules", "dep_rate"),
+    "amort_rate": ("Schedules", "amort_rate"), "cash_yield": ("Schedules", "cash_yield"),
+    "cost_debt": ("Schedules", "cost_debt"), "payout": ("Schedules", "payout"),
+    "nci_div_pct": ("Schedules", "nci_div_pct"), "other_ca_pct": ("Schedules", "other_ca_pct"),
+    "other_cl_pct": ("Schedules", "other_cl_pct"), "capex_int_pct": ("Schedules", "capex_int_pct"),
+    "dps_2026": ("Schedules", "dps_paid"), "capex_2026": ("Schedules", "capex_total"),
+    "m_pe": ("Segments", "m_pe"), "m_infra": ("Segments", "m_infra"), "m_auto": ("Segments", "m_auto"),
+    "m_mob": ("Segments", "m_mob"), "g_auto": ("Segments", "g_auto"), "g_mob": ("Segments", "g_mob"),
+    "g_pe_nonai": ("Segments", "g_pe"), "g_infra_nonai": ("Segments", "g_infra"),
+}
+
+
+def build_assumptions(wb, a: pd.DataFrame):
     sh = Sheet(wb, "Assumptions", "Assumptions",
-               "All forecast drivers live on this sheet. M2: scenario selector and the historical reference for each "
-               "driver. M3 adds FY2026E-FY2030E inputs with Bear / Base / Bull columns, set by the analyst.",
-               periods=FY)
+               "Every forecast driver, by year, with Bear / Base / Bull inputs. The 'Live' row (bold) follows the "
+               "scenario in B3 and feeds the model. Source of truth: model/assumptions.csv. Historical columns show "
+               "the same ratio as reported, for reference.", periods=FY)
     ws = sh.ws
     ws["A3"], ws["B3"] = "Scenario (select)", "Base"
     ws["B3"].font, ws["B3"].fill = font(BLUE, bold=True), FILL_KEY
@@ -643,44 +858,48 @@ def build_assumptions(wb):
     dv.add("B3")
     ws["A4"], ws["B4"] = "Scenario index (1 Bear, 2 Base, 3 Bull)", '=MATCH(B3,{"Bear","Base","Bull"},0)'
     ws["B4"].font = font()
-    REG[("Assumptions", "scenario")] = 3
-    S = lambda sheet, k, p: f"='{sheet}'!{COL[p]}{REG[(sheet, k)]}"  # noqa: E731
-    ws.column_dimensions["L"].width = 12
-    ws["L5"] = "Average"
-    ws["L5"].font, ws["L5"].fill = font(WHITE, bold=True), FILL_HEAD
-    ws["L6"] = "FY23-25 avail."
-    ws["L6"].font = font(GREY, italic=True)
-    rows = [
-        ("Revenue growth", [
-            ("Power Electronics", "Segments", "g_pe", F_PCT), ("Infrastructure", "Segments", "g_infra", F_PCT),
-            ("Automation", "Segments", "g_auto", F_PCT), ("Mobility", "Segments", "g_mob", F_PCT),
-            ("Group", "IS", "rev_growth", F_PCT)]),
-        ("Margins and costs", [
-            ("Gross margin", "IS", "gm", F_PCT), ("R&D % revenue", "IS", "rnd_pct", F_PCT),
-            ("SG&A % revenue", "IS", "sga_pct", F_PCT), ("EBIT margin", "IS", "ebit_margin", F_PCT),
-            ("Effective tax rate", "IS", "etr", F_PCT), ("NCI % net income", "Schedules", "nci_share", F_PCT)]),
-        ("Working capital (days)", [
-            ("DSO", "Schedules", "dso", F_DAYS), ("DIO", "Schedules", "dio", F_DAYS),
-            ("DPO", "Schedules", "dpo", F_DAYS)]),
-        ("Capex, D&A and financing", [
-            ("Total capex % revenue", "Schedules", "capex_total_pct", F_PCT),
-            ("Depreciation % opening PP&E", "Schedules", "dep_rate", F_PCT),
-            ("D&A % revenue", "Schedules", "da_pct", F_PCT), ("Cost of debt", "Schedules", "cost_debt", F_PCT),
-            ("Yield on cash", "Schedules", "cash_yield", F_PCT), ("Dividend payout", "Schedules", "payout", F_PCT)]),
-    ]
-    sh.r = 8
-    for title, items in rows:
-        sh.section(title + " - historical reference")
-        for label, sheet, key, fmt in items:
-            row = sh.line(f"ref_{key}", label, lambda p, s=sheet, k=key: (
-                S(s, k, p) if wb[s][f"{COL[p]}{REG[(s, k)]}"].value is not None else None),
-                fmt=fmt, style="link", note=f"{sheet} sheet")
-            ws[f"L{row}"] = f"=AVERAGE(E{row}:G{row})"
-            ws[f"L{row}"].number_format, ws[f"L{row}"].font = fmt, font()
-    sh.blank()
-    ws[f"A{sh.r}"] = ("Forecast inputs (FY2026E-FY2030E, Bear / Base / Bull) are added in M3. Base period moves to 9M26 "
-                      "when Q3 2026 results are published (decision D2).")
-    ws[f"A{sh.r}"].font = font(GREY, italic=True)
+    ws.column_dimensions["N"].width = 110
+    ws["N5"] = "Rationale ([ANALYST TO REVIEW] = draft for the analyst to accept, change or reject)"
+    ws["N5"].font, ws["N5"].fill = font(WHITE, bold=True), FILL_HEAD
+    ws["N4"] = None
+    order = list(dict.fromkeys(a.key))
+    sections = list(dict.fromkeys(a.section))
+    for section in sections:
+        sh.section(section)
+        for key in [k for k in order if a[a.key == k].section.iloc[0] == section]:
+            rows = a[a.key == key].set_index("scenario")
+            unit = rows.unit.iloc[0]
+            fmt = UNIT_FMT[unit]
+            scale = 0.01 if unit == "pct" else 1.0
+            live = sh.r
+            first = live + 1
+            years = [p for p in FC if not rows[p].isna().all()]
+            src = HIST_REF.get(key)
+
+            def hist(p, src=src):
+                if src is None:
+                    return None
+                cell = wb[src[0]][f"{COL[p]}{REG[src]}"].value
+                return None if cell is None else f"={ref(src[0], src[1], p)}"
+            sh.line(key, rows.label.iloc[0], hist, fc=lambda p, first=first, years=years: (
+                f"=CHOOSE($B$4,{COL[p]}{first},{COL[p]}{first + 1},{COL[p]}{first + 2})" if p in years else None),
+                fmt=fmt, style="link", bold=True, note=f"live ({UNIT_LABEL[unit]})")
+            for i, scen in enumerate(("Bear", "Base", "Bull")):
+                r = sh.r
+                ws[f"A{r}"] = f"    {scen}"
+                ws[f"A{r}"].font = font(GREY if scen != "Base" else BLACK, italic=scen != "Base")
+                for p in years:
+                    v = rows.at[scen, p]
+                    if pd.isna(v):
+                        continue
+                    c = ws[f"{COL[p]}{r}"]
+                    c.value = float(v) * scale
+                    c.font, c.number_format = font(BLUE), fmt
+                    if scen == "Base":
+                        c.fill = FILL_KEY
+                ws[f"N{r}"] = rows.at[scen, "rationale"]
+                ws[f"N{r}"].font = font(GREY, size=9)
+                sh.r += 1
     return sh
 
 
@@ -693,23 +912,25 @@ def build_checks(wb):
     ws["A4"], ws["B4"] = "EPS tolerance (NT$)", 0.02
     for c in ("B3", "B4"):
         ws[c].font = font(BLUE)
-    ws.column_dimensions["L"].width = 12
-    ws["L5"] = "All periods"
-    ws["L5"].font, ws["L5"].fill = font(WHITE, bold=True), FILL_HEAD
+    ws.column_dimensions[CHECK_ALL].width = 12
+    ws[f"{CHECK_ALL}5"] = "All periods"
+    ws[f"{CHECK_ALL}5"].font, ws[f"{CHECK_ALL}5"].fill = font(WHITE, bold=True), FILL_HEAD
     tol, etol = "$B$3", "$B$4"
-    R = lambda sheet, k, p: f"'{sheet}'!{COL[p]}{REG[(sheet, k)]}"  # noqa: E731
+    R = lambda sheet, k, p: X(sheet, k, p)  # noqa: E731
     eq = lambda a, b, t=tol: (lambda p: f"=ABS({a(p)}-{b(p)})<={t}")  # noqa: E731
     rows = []
 
-    def chk(key, label, fn, periods=None, note=""):
-        row = sh.line(key, label, fn, fmt="General", note=note, periods=periods)
-        cells = [f"{COL[p]}{row}" for p in (periods or PERIODS)]
-        ws[f"L{row}"] = f"=AND({','.join(cells)})"
-        ws[f"L{row}"].font = font(bold=True)
+    def chk(key, label, fn=None, fc=None, periods=None, note="", fc_periods=FC):
+        row = sh.line(key, label, fn, fc=fc, fmt="General", note=note, periods=periods)
+        cells = [f"{COL[p]}{row}" for p in (periods or PERIODS)] if fn else []
+        cells += [f"{COL[p]}{row}" for p in fc_periods] if fc else []
+        ws[f"{CHECK_ALL}{row}"] = f"=AND({','.join(cells)})"
+        ws[f"{CHECK_ALL}{row}"].font = font(bold=True)
         rows.append(row)
 
     sh.section("Balance sheet")
-    chk("bs_balance", "Assets = liabilities + equity", lambda p: f"=ABS({R('BS', 'bs_diff', p)})<={tol}")
+    bal = lambda p: f"=ABS({R('BS', 'bs_diff', p)})<={tol}"  # noqa: E731
+    chk("bs_balance", "Assets = liabilities + equity", bal, fc=bal)
     for k, h, lab in (("ta", "total_assets", "Total assets"), ("tl", "total_liabilities", "Total liabilities"),
                       ("te", "total_equity", "Total equity")):
         chk(f"bs_{k}", f"{lab} = reported", eq(lambda p, k=k: R("BS", k, p), lambda p, h=h: R("Historicals", h, p)))
@@ -728,32 +949,50 @@ def build_checks(wb):
     chk("cf_change", "Net change in cash = reported",
         eq(lambda p: R("CF", "net_change", p), lambda p: R("Historicals", "net_change_cash", p)))
     chk("cf_cash", "Closing cash (CF) = cash on balance sheet",
-        eq(lambda p: R("CF", "cash_close", p), lambda p: R("BS", "cash", p)))
+        eq(lambda p: R("CF", "cash_close", p), lambda p: R("BS", "cash", p)),
+        fc=eq(lambda p: R("CF", "cash_close", p), lambda p: R("BS", "cash", p)))
     sh.section("Segments")
-    chk("seg_ebit", "Segment profit total = EBIT",
-        eq(lambda p: R("Segments", "op_total", p), lambda p: R("IS", "ebit", p)))
+    seg_ebit = eq(lambda p: R("Segments", "op_total", p), lambda p: R("IS", "ebit", p))
+    chk("seg_ebit", "Segment profit total = EBIT", seg_ebit, fc=seg_ebit)
+    rev_eq = eq(lambda p: R("Segments", "rev_total", p), lambda p: R("IS", "revenue", p))
+    chk("seg_rev", "Segment revenue total = IS revenue", rev_eq, fc=rev_eq)
     chk("seg_others", "Unallocated revenue < 0.5% of group revenue",
-        lambda p: f"=ABS({R('Segments', 'rev_others', p)})<0.005*{R('IS', 'revenue', p)}")
+        lambda p: f"=ABS({R('Segments', 'rev_others', p)})<0.005*{R('IS', 'revenue', p)}",
+        fc=lambda p: f"=ABS({R('Segments', 'rev_others', p)})<0.005*{R('IS', 'revenue', p)}")
+    sl_rows = [REG[("Segments", f"{x}_{k}")] for x in ("rev", "op") for k in ("pe", "infra", "auto", "mob")]
+    chk("seg_slides", "3Q26 slides: 1H26 (audited) + 3Q26 = 9M26, every segment",
+        lambda p: "=AND(" + ",".join(f"ABS('Segments'!O{r}+'Segments'!P{r}-'Segments'!Q{r})<=2" for r in sl_rows) + ")",
+        periods=["1H26"], note="slides in NT$ m: tolerance NT$2m")
+    sh.section("Forecast sanity")
+    chk("fc_nonai", "Non-AI revenue stays positive (PE and Infrastructure)",
+        fc=lambda p: f"=AND({R('Segments', 'nonai_pe', p)}>0,{R('Segments', 'nonai_infra', p)}>0)")
+    chk("fc_cash", "Cash stays positive", fc=lambda p: f"={R('BS', 'cash', p)}>0")
+    chk("fc_sga", "Implied SG&A between 5% and 15% of revenue",
+        fc=lambda p: f"=AND({R('IS', 'sga_pct', p)}>=0.05,{R('IS', 'sga_pct', p)}<=0.15)",
+        note="SG&A balances GP and segment EBIT")
+    chk("fc_q4", "4Q26E revenue above 3Q26 (management guidance)",
+        fc=lambda p: (f"={A26('q4_revenue')}>'Segments'!P{REG[('Segments', 'rev_total')]}" if p == "FY2026"
+                      else None), note="3Q26 transcript p.6", fc_periods=["FY2026"])
     sh.section("Source extraction (Python)")
     chk("py_checks", "All tie-outs in data/processed/checks.csv pass",
         lambda p: f"={R('Historicals', 'checks_passed', 'FY2021')}={R('Historicals', 'checks_total', 'FY2021')}",
-        periods=["FY2021"], note="subtotals, restatements, monthly vs quarterly")
+        periods=["FY2021"], note="subtotals, restatements, slides, monthly")
     sh.blank()
     r = sh.r
     ws[f"A{r}"] = "ALL CHECKS"
     ws[f"A{r}"].font = font(NAVY, bold=True, size=12)
-    ws[f"L{r}"] = f"=AND({','.join(f'L{x}' for x in rows)})"
-    ws[f"L{r}"].font = font(bold=True, size=12)
+    ws[f"{CHECK_ALL}{r}"] = f"=AND({','.join(f'{CHECK_ALL}{x}' for x in rows)})"
+    ws[f"{CHECK_ALL}{r}"].font = font(bold=True, size=12)
     REG[("Checks", "all")] = r
-    tf_format(ws, f"C8:L{r}", "C8")
+    tf_format(ws, f"C8:{CHECK_ALL}{r}", "C8")
     return sh
 
 
-def build_cover(wb, h):
+def build_cover(wb):
     ws = wb.create_sheet("Cover", 0)
     ws.column_dimensions["A"].width = 3
     ws.column_dimensions["B"].width = 34
-    ws.column_dimensions["C"].width = 64
+    ws.column_dimensions["C"].width = 30
     ws["B2"] = "Delta Electronics, Inc. (2308.TW)"
     ws["B2"].font = font(NAVY, bold=True, size=18)
     ws["B3"] = "Initiation of coverage - financial model"
@@ -761,43 +1000,46 @@ def build_cover(wb, h):
     ws["B4"] = "Student research for educational purposes only. Not investment advice."
     ws["B4"].font = font(GREY, italic=True, size=9)
     items = [
-        ("Company", "Delta Electronics, Inc.", None),
-        ("Ticker / exchange", "2308 / Taiwan Stock Exchange", None),
-        ("Units", "NT$ million unless stated (reported in NT$ thousands, Taiwan IFRS)", None),
-        ("Latest reported period", "1H26 - six months to 30 June 2026 (reviewed)", None),
-        ("Forecast base period", "9M26 once Q3 2026 results are published, ~29-30 Oct 2026 (decision D2)", None),
-        ("Share price and date", "Set in M4 (yfinance, 2308.TW)", None),
-        ("Rating", "[ANALYST TO REVIEW] - set in M5", None),
-        ("12-month price target", "[ANALYST TO REVIEW] - set in M4/M5", None),
-        ("Scenario", "='Assumptions'!B3", "link"),
-        ("Model status", "M2 - historical model FY2021A-1H26A; forecasts added in M3", None),
-        ("Last updated", dt.date.today().isoformat(), None),
+        ("Company", "Delta Electronics, Inc."),
+        ("Ticker / exchange", "2308 / Taiwan Stock Exchange"),
+        ("Units", "NT$ million unless stated (reported in NT$ thousands, Taiwan IFRS)"),
+        ("Latest reported period", "9M26 (3Q26 earnings slides, 29 Oct 2026); latest full statements 1H26"),
+        ("Forecast basis", "FY2026E = 9M26 actual + 4Q26E; balance sheet rolls forward from FY2025A"),
+        ("Share price and date", "Set in M4 (yfinance, 2308.TW)"),
+        ("Rating", "[ANALYST TO REVIEW] - set in M5"),
+        ("12-month price target", "[ANALYST TO REVIEW] - set in M4/M5"),
+        ("Scenario", "='Assumptions'!B3"),
+        ("Model status", "M3 - forecasts FY2026E-FY2030E; draft assumptions [ANALYST TO REVIEW]"),
+        ("Last updated", dt.date.today().isoformat()),
     ]
     r = 6
-    for k, v, style in items:
+    for k, v in items:
         ws[f"B{r}"], ws[f"C{r}"] = k, v
         ws[f"B{r}"].font = font(bold=True)
-        ws[f"C{r}"].font = font(GREEN if style == "link" else BLACK)
+        ws[f"C{r}"].font = font(GREEN if str(v).startswith("=") else BLACK)
         r += 1
     r += 1
     ws[f"B{r}"] = "ALL CHECKS PASS"
     ws[f"B{r}"].font = font(NAVY, bold=True, size=12)
-    ws[f"C{r}"] = f"='Checks'!L{REG[('Checks', 'all')]}"
+    ws[f"C{r}"] = f"='Checks'!{CHECK_ALL}{REG[('Checks', 'all')]}"
     ws[f"C{r}"].font = font(bold=True, size=12)
     ws[f"C{r}"].alignment = Alignment(horizontal="left")
     tf_format(ws, f"C{r}", f"C{r}")
     REG[("Cover", "checks")] = r
     r += 2
-    ws[f"B{r}"] = "Key historicals (NT$ m)"
+    ws[f"B{r}"] = "Key financials (NT$ m; live scenario)"
     ws[f"B{r}"].font = font(NAVY, bold=True)
     r += 1
-    key_rows = [("Revenue", "IS", "revenue", F_NUM), ("EBIT margin", "IS", "ebit_margin", F_PCT),
-                ("EPS, basic (NT$)", "IS", "eps", F_EPS), ("Free cash flow", "CF", "fcf", F_NUM),
-                ("Net debt / (net cash)", "BS", "net_debt", F_NUM)]
-    heads = ["FY2023", "FY2024", "FY2025", "1H26"]
+    heads = ["FY2024", "FY2025", "FY2026", "FY2027", "FY2028"]
+    key_rows = [("Revenue", "IS", "revenue", F_NUM), ("Revenue growth", "IS", "rev_growth", F_PCT),
+                ("AI data-centre % of revenue", "Segments", "ai_share", F_PCT),
+                ("EBIT margin", "IS", "ebit_margin", F_PCT), ("EPS, basic (NT$)", "IS", "eps", F_EPS),
+                ("EPS growth", "IS", "eps_growth", F_PCT), ("Dividend per share paid (NT$)", "Schedules", "dps_paid", F_EPS),
+                ("Free cash flow", "CF", "fcf", F_NUM), ("Net debt / (net cash)", "BS", "net_debt", F_NUM)]
     for i, p in enumerate(heads):
         c = ws.cell(row=r, column=4 + i, value=HEAD[p])
-        c.font, c.fill, c.alignment = font(WHITE, bold=True), FILL_HEAD, Alignment(horizontal="right")
+        c.font, c.alignment = font(WHITE, bold=True), Alignment(horizontal="right")
+        c.fill = FILL_FC_HEAD if p in FC else FILL_HEAD
         ws.column_dimensions[c.column_letter].width = 12
     ws[f"B{r}"].fill = ws[f"C{r}"].fill = FILL_HEAD
     r += 1
@@ -805,18 +1047,21 @@ def build_cover(wb, h):
         ws[f"B{r}"] = label
         ws[f"B{r}"].font = font()
         for i, p in enumerate(heads):
-            c = ws.cell(row=r, column=4 + i, value=f"='{sheet}'!{COL[p]}{REG[(sheet, key)]}")
+            cell_ref = f"{COL[p]}{REG[(sheet, key)]}"
+            if wb[sheet][cell_ref].value is None and p not in FC:
+                continue
+            c = ws.cell(row=r, column=4 + i, value=f"='{sheet}'!{cell_ref}")
             c.font, c.number_format = font(GREEN), fmt
         r += 1
     r += 1
     ws[f"B{r}"] = "Sheet guide"
     ws[f"B{r}"].font = font(NAVY, bold=True)
     r += 1
-    guide = [("Assumptions", "Scenario selector; every forecast driver (M3) with its historical reference"),
+    guide = [("Assumptions", "Scenario selector; every forecast driver by year, Bear / Base / Bull"),
              ("Historicals", "Extracted as-reported figures (inputs), FY2021A-FY2025A, 1H25A, 1H26A"),
-             ("Segments", "Segment revenue and profit; AI data-centre anchors"),
-             ("IS / BS / CF", "Three statements built by formula from Historicals"),
-             ("Schedules", "Working capital, PP&E, debt and interest, tax, dividends, returns"),
+             ("Segments", "Segment revenue build incl. AI data-centre line; segment profit"),
+             ("IS / BS / CF", "Three statements: historicals by formula, FY2026E-FY2030E forecast"),
+             ("Schedules", "Working capital, capex, PP&E, intangibles, debt, tax, dividends, returns"),
              ("Checks", "Integrity tests; all must be TRUE")]
     for k, v in guide:
         ws[f"B{r}"], ws[f"C{r}"] = k, v
@@ -826,9 +1071,10 @@ def build_cover(wb, h):
     ws[f"B{r}"] = "Colour key"
     ws[f"B{r}"].font = font(NAVY, bold=True)
     r += 1
-    for txt, col, fill in (("Blue: hard-coded input (sourced in data/sources.csv)", BLUE, None),
+    for txt, col, fill in (("Blue: hard-coded input (sourced in data/sources.csv or model/assumptions.csv)", BLUE, None),
                            ("Black: formula", BLACK, None), ("Green: link to another sheet", GREEN, None),
-                           ("Yellow fill: key input for the analyst", BLACK, FILL_KEY)):
+                           ("Yellow fill: Base-case input set by the analyst", BLACK, FILL_KEY),
+                           ("Shaded columns: forecast", BLACK, FILL_FC)):
         ws[f"B{r}"] = txt
         ws[f"B{r}"].font = font(col)
         if fill:
@@ -838,18 +1084,21 @@ def build_cover(wb, h):
 
 
 def main() -> int:
-    h, segs, lines, checks = load()
+    REG.clear()
+    PENDING.clear()
+    h, segs, lines, checks, a = load()
     wb = Workbook()
     wb.remove(wb.active)
     build_historicals(wb, h, checks)
     build_is(wb)
-    bs = build_bs(wb)
-    build_cf(wb, bs)
+    build_bs(wb)
+    build_cf(wb)
     build_segments(wb, segs)
     build_schedules(wb)
-    build_assumptions(wb)
+    build_assumptions(wb, a)
     build_checks(wb)
-    build_cover(wb, h)
+    finalize()
+    build_cover(wb)
     for ws in wb.worksheets:
         ws.page_setup.orientation = "landscape"
         ws.page_setup.paperSize = ws.PAPERSIZE_A4

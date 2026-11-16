@@ -3,7 +3,7 @@ PY ?= python3
 
 .PHONY: all data fetch extract charts model preview test clean
 
-all: data charts model
+all: data model charts
 
 data: fetch extract
 
