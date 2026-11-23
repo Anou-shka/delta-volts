@@ -24,9 +24,12 @@ I make the investment calls; the code implements them. This log records each dec
 | D16 | 23 Nov 2026 | **Price target = 50% DCF + 50% comps, rolled 12 months at the cost of equity, less the next dividend; spec rating rule.** `[ANALYST TO REVIEW]` | The DCF captures the AI path; the comps anchor to how the market prices peers today. | Draft target NT$821 vs NT$990 (−17%) → **Sell** under the spec's rule (Buy above +15%, Sell below −10%). |
 | D17 | 23 Nov 2026 | **The Python mirror does what a spreadsheet can't do live; the workbook can reproduce any of it.** | The reverse DCF and the AI-growth × margin grid need the whole model re-run per value. Two shift inputs on Assumptions let the workbook reproduce any grid cell or the reverse-DCF answer, and the tests do exactly that. | `src/delta/model.py` reproduces every forecast line, the DCF, comps and target. It agrees with the recalculated workbook to within 0.1% in all three scenarios (24 tests). |
 
+| D18 | 23 Nov 2026 | **Generate the report from the model; draft the judgement sections for the analyst to rewrite.** | A hand-typed report drifts from the model the moment an assumption changes. The thesis, key debate and rating are the analyst's to write (spec M5). | `src/delta/report.py` writes `report/delta_initiation.md` from the processed data, the Python mirror and the valuation summary, with 18 footnoted sources. A test fails if a value is missing, a footnote is undefined or the target is out of sync. Thesis, debate and rating are drafts tagged `[ANALYST TO REVIEW]`, each with a one-line reason for the draft. |
+
 ## Pending
 
 - **Set the Base case:** review every `[ANALYST TO REVIEW]` row in `model/assumptions.csv` and `model/valuation_inputs.csv`, accept or change it, and remove the tag. The terminal-value method (D14) and the AI capex path matter most.
 - **Rating and price target (D16):** the analyst's call once the Base case is set.
+- **Report (D18):** rewrite the thesis, key-debate and rating sections in `report/delta_initiation.md` (edit the template in `src/delta/report.py` so the numbers stay live).
 - Review of the 10-figure sample in [`m1-review-sample.md`](m1-review-sample.md).
 - English Q3 2026 financial statements: add to `fetch.py` when published and replace the slide figures (D6).

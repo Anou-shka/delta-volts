@@ -434,3 +434,8 @@ Monthly: three monthly releases sum to quarterly revenue,mr_*.pdf,2Q26,183256.08
 "3Q26 slides: 1H26 (audited) + 3Q26 = 9M26 (Mobility, revenue)",ic_3Q26.pdf,9M26,25080000.0,25079867.0,-133.0,True
 "3Q26 slides: 1H26 (audited) + 3Q26 = 9M26 (Mobility, op_profit)",ic_3Q26.pdf,9M26,-1267000.0,-1267759.0,-759.0,True
 3Q26: Jul-Sep monthly revenue = 9M26 cumulative - 1H26 (audited),mr_*.pdf,3Q26,197059.26799999998,197059.0,-0.2679999999818392,True
+Geography: regional revenue sums to group revenue,fs_2021_annual_consolidated.pdf,FY2021,314670796.0,314670796.0,0.0,True
+Geography: regional revenue sums to group revenue,fs_2022_annual_consolidated.pdf,FY2022,384443308.0,384443308.0,0.0,True
+Geography: regional revenue sums to group revenue,fs_2023_annual_consolidated.pdf,FY2023,401226501.0,401226501.0,0.0,True
+Geography: regional revenue sums to group revenue,fs_2024_annual_consolidated.pdf,FY2024,421147557.0,421147557.0,0.0,True
+Geography: regional revenue sums to group revenue,fs_2025_annual_consolidated.pdf,FY2025,554885168.0,554885168.0,0.0,True

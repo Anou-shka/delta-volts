@@ -1,9 +1,9 @@
 # Rebuild everything from primary sources. `make all` runs every stage in order.
 PY ?= python3
 
-.PHONY: all data fetch extract market charts model preview test clean
+.PHONY: all data fetch extract market charts model preview report test clean
 
-all: data model charts
+all: data model charts report
 
 data: fetch extract
 
@@ -26,6 +26,9 @@ model:            ## Python mirror (valuation_summary.json) -> Excel model with 
 
 preview:          ## render model sheets to report/figures/model_*.png (README images)
 	$(PY) -m src.delta.preview
+
+report:           ## model outputs -> report/delta_initiation.md (every number generated from the model)
+	$(PY) -m src.delta.report
 
 test:
 	$(PY) -m pytest -q tests

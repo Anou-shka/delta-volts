@@ -148,6 +148,32 @@ def extract_segments(fname: str, ebit: dict[str, float]) -> list[dict]:
     return out
 
 
+# --------------------------------------------------------------------------- geography
+REGIONS = ("U.S.A.", "Mainland China", "Taiwan", "Thailand", "Others")
+
+
+def extract_geography() -> pd.DataFrame:
+    """Revenue and non-current assets by geography from each annual report's segment note (NT$ thousands)."""
+    recs = []
+    for y in range(2021, 2026):
+        fname = f"fs_{y}_annual_consolidated.pdf"
+        doc = pymupdf.open(RAW / fname)
+        start = next(i for i in range(doc.page_count) if SEG_PAGES_HINT in doc[i].get_text())
+        for pno in range(start, min(start + 3, doc.page_count)):
+            for line in _lines(doc[pno].get_text("words"), tol=3):
+                text = " ".join(w[4] for w in line)
+                region = next((r for r in REGIONS if text.startswith(r + " ")), None)
+                if not region:
+                    continue
+                nums = [_num(w[4]) for w in line if _num(w[4]) is not None]
+                if len(nums) != 4:
+                    continue
+                for period, (rev, nca) in ((f"FY{y}", nums[:2]), (f"FY{y - 1}", nums[2:])):
+                    recs.append({"document": fname, "page": pno + 1, "period": period, "region": region,
+                                 "revenue": rev, "noncurrent_assets": nca})
+    return pd.DataFrame(recs).drop_duplicates(["document", "period", "region"])
+
+
 # --------------------------------------------------------------------------- 3Q26 (earnings slides)
 SLIDES = ROOT / "data" / "slides_3q26.csv"
 
@@ -486,6 +512,17 @@ def write_sources(lines: pd.DataFrame, std_keys: dict[str, tuple[str, str]], std
                      "unit": "NT$ per share" if r["item"].startswith("eps") else "NT$ million", "period": r.period,
                      "document": doc, "page_or_url": f"{r.source_page} | {mf['url']}",
                      "date_accessed": mf["date_accessed"], "notes": f"extract.py: earnings slides; {r.notes}".strip("; ")})
+    geo_path = OUT / "geography.csv"
+    if geo_path.exists():
+        for _, r in pd.read_csv(geo_path).iterrows():
+            if r.document != f"fs_{r.period[2:]}_annual_consolidated.pdf":
+                continue
+            mf = manifest[r.document]
+            for item in ("revenue", "noncurrent_assets"):
+                rows.append({"figure": f"geography {item} - {r.region}", "value": r[item], "unit": "NT$ thousands",
+                             "period": r.period, "document": r.document,
+                             "page_or_url": f"p.{r.page} | {mf['url']}", "date_accessed": mf["date_accessed"],
+                             "notes": "extract.py: segment note, geographical information"})
     for _, r in segs[segs.document != "ic_3Q26.pdf"].iterrows():
         mf = manifest[r.document]
         rows.append({"figure": f"segment {r['item']} - {r.segment}", "value": r.value, "unit": "NT$ thousands",
@@ -531,6 +568,8 @@ def main() -> int:
     std.index.name = "item"
     std.round(3).to_csv(OUT / "historicals.csv")
 
+    geo = extract_geography()
+    geo.to_csv(OUT / "geography.csv", index=False)
     monthly = extract_monthly()
     monthly.to_csv(OUT / "monthly_revenue.csv", index=False)
 
@@ -559,6 +598,14 @@ def main() -> int:
                   - std.at["revenue", "1H26"], "actual": q3, "diff": 0.0, "pass": False})
     extra[-1]["diff"] = extra[-1]["actual"] - extra[-1]["expected"]
     extra[-1]["pass"] = abs(extra[-1]["diff"]) <= 3
+    # geography: regions sum to group revenue (each report's own year)
+    for (doc, period), g in geo.groupby(["document", "period"]):
+        if doc != f"fs_{period[2:]}_annual_consolidated.pdf":
+            continue
+        rev = std.at["revenue", period] * 1000
+        extra.append({"check": "Geography: regional revenue sums to group revenue", "document": doc,
+                      "period": period, "expected": rev, "actual": g.revenue.sum(),
+                      "diff": g.revenue.sum() - rev, "pass": abs(g.revenue.sum() - rev) <= 2})
     checks = pd.concat([checks, pd.DataFrame(extra)], ignore_index=True)
     checks.to_csv(OUT / "checks.csv", index=False)
 

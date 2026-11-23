@@ -226,3 +226,39 @@ FY2025 Infrastructure revenue grew 82% to NT$182.0bn, and its segment profit ros
 2. **Base-case AI path (M3 drafts):** the draft FY2027E EPS of NT$43.9 sits well below consensus (NT$60.4). Either defend the gap or move towards consensus.
 3. **Beta (D12):** bottom-up 1.48 vs regression 1.73 (2y raw).
 4. **Target blend and rating (D16).** The rating is yours.
+
+---
+
+## M5 — Report draft (23 Nov 2026) — *thesis, debate and rating are for the analyst to write*
+
+### What was built
+
+- **`report/delta_initiation.md`:** the initiation report, about 3,200 words, in the spec's structure: summary page, thesis, key debate, company overview, industry, segment forecasts and scenarios, financials, valuation, risks and appendix. It has six figures, eight tables and 18 footnoted sources.
+- **`src/delta/report.py` generates it.** Every number comes from the processed data, the Python mirror (tested equal to the workbook) or the valuation summary, so changing an assumption and running `make model report` updates the whole report. `tests/test_report.py` fails if a value is missing (`nan`/`None`), a cited footnote is undefined, or the target in the text differs from the model.
+- **New data for the report:**
+  - revenue and non-current assets by geography from each annual report's segment note, with a check that regions sum to group revenue (440 extraction checks);
+  - industry facts with primary citations: NVIDIA (GB200 NVL72 ~120 kW per rack; 800V DC for 1 MW racks from 2027) and the IEA (data centres ~1.5% of global electricity in 2024, ~945 TWh by 2030).
+- **Charts used:** revenue build (page 1), revenue by segment, margins, football field, sensitivity heatmaps.
+- **Length:** a test render with a plain stylesheet comes to 14 A4 pages. The M6 template (two-column summary page, smaller figures, compact notes) is meant to bring it to 10–12.
+
+### Findings the report adds
+
+- **The US is now Delta's largest single-country market:** 36% of FY2025 revenue (NT$197bn), up from 23% in FY2021. Mainland China fell from 33% to 15%.
+- **The assets are elsewhere.** The US holds just NT$7.3bn of NT$228bn non-current assets; Thailand holds NT$71bn and Taiwan NT$62bn. That's the core of the tariff risk.
+
+### The 3 most important choices
+
+1. **The report is code, not a document.** Generating it from the model means the numbers in the text can't disagree with the spreadsheet, and the test proves it.
+2. **Only sourced claims in the industry section.** Rack power, the 800V architecture and grid demand come from NVIDIA and the IEA directly. Comparative claims with no source were rewritten as numbers that have one.
+3. **Judgement sections are drafts with stated reasoning.** Each `[ANALYST TO REVIEW]` section says why it was drafted that way, so the analyst can accept, change or reject the logic, not just the words.
+
+### 3 questions an interviewer could ask
+
+1. "What's the single question the market is arguing about on Delta, and which side are you on?"
+2. "Delta sells 36% of its revenue to the US but has almost no assets there. How do you think about tariff risk?"
+3. "Your page-1 table shows 27× FY2026E P/E even after the stock halved. Why isn't it cheap?"
+
+### For the analyst
+
+- Rewrite **Investment thesis**, **Key debate** and **Price target and rating** in `src/delta/report.py` (the drafts are there with their reasoning), then run `make report`.
+- The rating follows from the draft Base case and the terminal-value choice (D14). Set those first.
