@@ -19,6 +19,7 @@ Run: python -m src.delta.build_excel   (then python -m src.delta.recalc model/de
 from __future__ import annotations
 
 import datetime as dt
+import json
 import re
 from pathlib import Path
 
@@ -35,6 +36,9 @@ ROOT = Path(__file__).resolve().parents[2]
 PROCESSED = ROOT / "data" / "processed"
 ASSUMPTIONS = ROOT / "model" / "assumptions.csv"
 SLIDES = ROOT / "data" / "slides_3q26.csv"
+VALUATION = ROOT / "model" / "valuation_inputs.csv"
+SUMMARY = ROOT / "model" / "valuation_summary.json"
+MARKET = ROOT / "data" / "raw" / "market"
 OUT = ROOT / "model" / "delta_model.xlsx"
 
 FY = ["FY2021", "FY2022", "FY2023", "FY2024", "FY2025"]
@@ -61,6 +65,7 @@ BLUE, BLACK, GREEN, GREY, WHITE = "0000FF", "000000", "008000", "595959", "FFFFF
 NAVY, TEAL = "1F3864", "2F5597"
 F_NUM = '#,##0.0;(#,##0.0);"-"'
 F_PCT = '0.0%;(0.0%);"-"'
+F_PCT2 = '0.00%;(0.00%);"-"'
 F_EPS = '0.00;(0.00);"-"'
 F_DAYS = '0.0;(0.0);"-"'
 F_X = '0.00"x";(0.00"x");"-"'
@@ -103,6 +108,11 @@ def A(key: str, p: str) -> str:
 def A26(key: str) -> str:
     """A one-off FY2026E assumption, anchored absolutely."""
     return ref("Assumptions", key, "FY2026", absolute=True)
+
+
+def V(key: str) -> str:
+    """A single-value input (valuation input or sensitivity shift) on Assumptions, column C."""
+    return f"'Assumptions'!$C${REG[('Assumptions', key)]}"
 
 
 def color_for(style: str, v) -> str:
@@ -324,7 +334,7 @@ def build_is(wb):
     sh.line("revenue", "Revenue", lk("revenue"), fc=lambda p: f"={S('rev_total', p)}", style="link",
             fc_style="link", bold=True)
     sh.line("cogs", "Cost of revenue", lk("cogs"),
-            fc=lambda p: f"=-{sh.ref('revenue', p)}*(1-{A('gross_margin', p)})", style="link")
+            fc=lambda p: f"=-{sh.ref('revenue', p)}*(1-({A('gross_margin', p)}+{V('gm_shift')}))", style="link")
     sh.line("gross_profit", "Gross profit", lambda p: f"={sh.ref('revenue', p)}+{sh.ref('cogs', p)}",
             fc=lambda p: f"={sh.ref('revenue', p)}+{sh.ref('cogs', p)}", total=True)
     sh.line("sga", "Selling, general and administrative",
@@ -598,11 +608,12 @@ def build_segments(wb, segs):
 
     sh.section("AI data-centre revenue (forecast; decision D1 anchors on Assumptions)")
     sh.line("ai_capex_g", "Hyperscaler / AI data-centre capex growth",
-            fc=lambda p: None if p == "FY2026" else f"={A('dc_capex_growth', p)}", fmt=F_PCT, fc_style="link")
+            fc=lambda p: None if p == "FY2026" else f"={A('dc_capex_growth', p)}+{V('ai_shift')}", fmt=F_PCT,
+            note="incl. sensitivity shift (Assumptions)")
 
     def ai_line(share_key, content_key):
         return lambda p: (f"={A26(share_key)}*{sh.ref('rev_total', p)}" if p == "FY2026" else
-                          f"={sh.ref(content_key.replace('content_', 'ai_'), PREV[p])}*(1+{A('dc_capex_growth', p)})"
+                          f"={sh.ref(content_key.replace('content_', 'ai_'), PREV[p])}*(1+{sh.ref('ai_capex_g', p)})"
                           f"*(1+{A(content_key, p)})")
     sh.line("ai_power", "AI power solutions", fc=ai_line("ai_power_share", "content_power"),
             note="FY2026E: ~25% of revenue (mgmt)")
@@ -634,7 +645,7 @@ def build_segments(wb, segs):
     for seg in SEGS:
         k = SEG_KEY[seg]
         sh.line(f"op_{k}", seg, val(seg, "op_profit"),
-                fc=lambda p, k=k: f"={sh.ref('rev_' + k, p)}*{A('m_' + k, p)}", style="input",
+                fc=lambda p, k=k: f"={sh.ref('rev_' + k, p)}*({A('m_' + k, p)}+{V('gm_shift')})", style="input",
                 note="segment note / slides; fcst rev x margin")
     opt = lambda p: f"=SUM({sh.ref('op_pe', p)}:{sh.ref('op_mob', p)})"  # noqa: E731
     sh.line("op_total", "Total segment profit (= EBIT)", opt, fc=opt, total=True,
@@ -900,7 +911,458 @@ def build_assumptions(wb, a: pd.DataFrame):
                 ws[f"N{r}"] = rows.at[scen, "rationale"]
                 ws[f"N{r}"].font = font(GREY, size=9)
                 sh.r += 1
+    # single-value inputs: valuation (model/valuation_inputs.csv) and sensitivity shifts; value in column C
+    v = pd.read_csv(VALUATION)
+    sh.section("Valuation inputs (single values; value in column C)")
+    for _, r in v.iterrows():
+        row = sh.r
+        REG[("Assumptions", r.key)] = row
+        ws[f"A{row}"], ws[f"B{row}"] = r.label, UNIT_LABEL.get(r.unit, r.unit)
+        c = ws[f"C{row}"]
+        c.value = float(r.value) * (0.01 if r.unit == "pct" else 1.0)
+        c.font, c.fill = font(BLUE), FILL_KEY
+        c.number_format = F_PCT if r.unit == "pct" else ('0.00"x"' if r.unit == "x" else F_NUM)
+        ws[f"N{row}"] = f"{r.rationale} | Source: {r.source}"
+        ws[f"N{row}"].font = font(GREY, size=9)
+        ws[f"A{row}"].font, ws[f"B{row}"].font = font(), font(GREY, italic=True, size=9)
+        sh.r += 1
+    sh.section("Sensitivity shifts (keep at 0 for the published case)")
+    for key, label, note in (
+            ("ai_shift", "AI data-centre capex growth shift, FY2027E-FY2030E (pp, every year)",
+             "Added to the live capex growth. Used for the AI x margin grid and the reverse DCF."),
+            ("gm_shift", "Gross margin shift, flowing through to EBIT (pp)",
+             "Added to gross margin and to every segment margin, so SG&A is unchanged.")):
+        row = sh.r
+        REG[("Assumptions", key)] = row
+        ws[f"A{row}"], ws[f"B{row}"], ws[f"C{row}"] = label, "%", 0.0
+        ws[f"C{row}"].font, ws[f"C{row}"].number_format, ws[f"C{row}"].fill = font(BLUE), F_PCT, FILL_KEY
+        ws[f"N{row}"] = note
+        ws[f"N{row}"].font = font(GREY, size=9)
+        sh.r += 1
     return sh
+
+
+def _scalar(sh, key, label, formula, fmt=F_NUM, style="formula", note="", bold=False):
+    """A single-value line in column C of a period-grid sheet."""
+    return sh.line(key, label, lambda p: formula, fmt=fmt, style=style, note=note, periods=["FY2021"], bold=bold)
+
+
+def C(sheet: str, key: str) -> str:
+    return f"'{sheet}'!$C${REG[(sheet, key)]}"
+
+
+def build_comps(wb, peers: pd.DataFrame, snap: dict, low52: float, high52: float):
+    ws = wb.create_sheet("Comps")
+    ws["A1"] = "Comparable companies"
+    ws["A1"].font = font(NAVY, bold=True, size=14)
+    ws["A2"] = (f"Market data snapshot {snap['price_date']} ({snap['source']}; consensus = Yahoo analyst averages). "
+                "Local currency, millions except per-share. FY1 = next fiscal year (FY2027 for all peers). Forward "
+                "EBITDA is estimated as TTM EBITDA x consensus revenue growth (no EBITDA consensus available).")
+    ws["A2"].font = font(GREY, italic=True)
+    market = [("price", "Delta share price (NT$)", snap["delta_close"], F_NUM),
+              ("price_date", "Price date", dt.date.fromisoformat(snap["price_date"]), "yyyy-mm-dd"),
+              ("low_52w", "52-week low (NT$)", low52, F_NUM), ("high_52w", "52-week high (NT$)", high52, F_NUM),
+              ("usd_twd", "USD/TWD", snap["fx"]["USD"], "0.000"), ("eur_twd", "EUR/TWD", snap["fx"]["EUR"], "0.000")]
+    r = 4
+    for key, label, val, fmt in market:
+        ws[f"A{r}"], ws[f"C{r}"] = label, val
+        ws[f"C{r}"].font, ws[f"C{r}"].number_format = font(BLUE), fmt
+        ws[f"A{r}"].font = font()
+        REG[("Comps", key)] = r
+        r += 1
+    cols = [("A", "Ticker", None), ("B", "Company", None), ("C", "Ccy", None), ("D", "Price", "price"),
+            ("E", "Shares (m)", "shares_m"), ("F", "Market cap", "market_cap_m"), ("G", "Debt", "total_debt_m"),
+            ("H", "Cash", "total_cash_m"), ("I", "EV", None), ("J", "Revenue TTM", "revenue_ttm_m"),
+            ("K", "EBITDA TTM", "ebitda_ttm_m"), ("L", "EPS TTM", "eps_ttm"), ("M", "EPS FY1", "eps_fy1"),
+            ("N", "Revenue FY1", "revenue_fy1_m"), ("O", "EV/EBITDA TTM", None), ("P", "EBITDA FY1 (est.)", None),
+            ("Q", "EV/EBITDA FY1", None), ("R", "EV/Sales FY1", None), ("S", "P/E TTM", None), ("T", "P/E FY1", None),
+            ("U", "EV (NT$ bn)", None), ("V", "Why it is (or isn't) comparable", None)]
+    hdr = 12
+    for c, t, _ in cols:
+        ws[f"{c}{hdr}"] = t
+        ws[f"{c}{hdr}"].font, ws[f"{c}{hdr}"].fill = font(WHITE, bold=True), FILL_HEAD
+        ws[f"{c}{hdr}"].alignment = Alignment(horizontal="center", wrap_text=True)
+        ws.column_dimensions[c].width = 11
+    ws.row_dimensions[hdr].height = 30
+    ws.column_dimensions["B"].width = 20
+    ws.column_dimensions["V"].width = 70
+    why = {"2308.TW": "Subject company (shown at market; excluded from peer statistics)",
+           "VRT": "Closest data-centre pure play (power and thermal); US-listed, higher growth expectations",
+           "SU.PA": "Data-centre power and cooling inside a broad electrical group; slower-growing mix",
+           "ETN": "Electrical equipment with a growing data-centre business; US utility/industrial exposure",
+           "2301.TW": "Taiwan power-supply peer selling into AI servers; smaller, lower-margin, same market",
+           "6282.TW": "Taiwan power-supply peer; much smaller and less AI exposure; low-margin outlier"}
+    fx_cell = {"TWD": None, "USD": f"$C${REG[('Comps', 'usd_twd')]}", "EUR": f"$C${REG[('Comps', 'eur_twd')]}"}
+    rows = []
+    for i, (_, p) in enumerate(peers.iterrows()):
+        rr = hdr + 1 + i
+        rows.append(rr)
+        ws[f"A{rr}"], ws[f"B{rr}"], ws[f"C{rr}"] = p.ticker, p["name"], p.currency
+        for c, _, field in cols:
+            if field:
+                ws[f"{c}{rr}"] = float(p[field])
+                ws[f"{c}{rr}"].font = font(BLUE)
+                ws[f"{c}{rr}"].number_format = F_EPS if field.startswith(("eps", "price")) else '#,##0'
+        f = {"I": f"=F{rr}+G{rr}-H{rr}", "O": f"=I{rr}/K{rr}", "P": f"=K{rr}*N{rr}/J{rr}", "Q": f"=I{rr}/P{rr}",
+             "R": f"=I{rr}/N{rr}", "S": f"=D{rr}/L{rr}", "T": f"=D{rr}/M{rr}",
+             "U": f"=I{rr}{'*' + fx_cell[p.currency] if fx_cell[p.currency] else ''}/1000"}
+        for c, v in f.items():
+            ws[f"{c}{rr}"] = v
+            ws[f"{c}{rr}"].font = font()
+            ws[f"{c}{rr}"].number_format = '#,##0' if c in "IPU" else '0.0"x"'
+        ws[f"V{rr}"] = why.get(p.ticker, "")
+        ws[f"V{rr}"].font = font(GREY, size=9)
+        if p.ticker == "2308.TW":
+            for c, _, _ in cols:
+                ws[f"{c}{rr}"].fill = FILL_SECTION
+    peer_rows = [x for x, (_, p) in zip(rows, peers.iterrows()) if p.ticker != "2308.TW"]
+    first, last = peer_rows[0], peer_rows[-1]
+    r = last + 2
+    for label, fn in (("Peer 25th percentile", "QUARTILE({rng},1)"), ("Peer median", "MEDIAN({rng})"),
+                      ("Peer 75th percentile", "QUARTILE({rng},3)")):
+        ws[f"B{r}"] = label
+        ws[f"B{r}"].font = font(bold=True)
+        for c in "OQRST":
+            ws[f"{c}{r}"] = "=" + fn.format(rng=f"{c}{first}:{c}{last}")
+            ws[f"{c}{r}"].number_format, ws[f"{c}{r}"].font = '0.0"x"', font(bold=True)
+        REG[("Comps", {"Peer 25th percentile": "q1", "Peer median": "median", "Peer 75th percentile": "q3"}[label])] = r
+        r += 1
+
+    # implied value for Delta on FY2027E (peers' FY1)
+    r += 1
+    ws[f"A{r}"] = "Implied value for Delta (forward multiples on FY2027E; net cash and NCI share at FY2026E)"
+    ws[f"A{r}"].font = font(NAVY, bold=True)
+    r += 1
+    IS = lambda k, p: ref("IS", k, p)  # noqa: E731
+    BS = lambda k, p: ref("BS", k, p)  # noqa: E731
+    inputs = [("d_ebitda27", "Delta FY2027E EBITDA (NT$ m)", f"={IS('ebitda', 'FY2027')}", F_NUM),
+              ("d_eps27", "Delta FY2027E EPS (NT$)", f"={IS('eps', 'FY2027')}", F_EPS),
+              ("d_netcash26", "Delta net cash and investments, FY2026E (NT$ m)",
+               f"={BS('cash', 'FY2026')}+{BS('st_investments', 'FY2026')}+{BS('lt_investments', 'FY2026')}"
+               f"-{BS('total_debt', 'FY2026')}-{BS('leases', 'FY2026')}", F_NUM),
+              ("d_nci", "NCI share of net income, FY2027E", f"={A('nci_pct', 'FY2027')}", F_PCT),
+              ("d_shares", "Shares outstanding (m)", f"={IS('shares', 'FY2026')}", F_NUM)]
+    for key, label, fml, fmt in inputs:
+        ws[f"B{r}"], ws[f"F{r}"] = label, fml
+        ws[f"F{r}"].font, ws[f"F{r}"].number_format = font(GREEN), fmt
+        REG[("Comps", key)] = r
+        r += 1
+    r += 1
+    for c, t in zip("BFGH", ["Per share (NT$)", "25th pct", "Median", "75th pct"]):
+        ws[f"{c}{r}"] = t
+        ws[f"{c}{r}"].font, ws[f"{c}{r}"].fill = font(WHITE, bold=True), FILL_HEAD
+    r += 1
+    E = lambda k: f"$F${REG[('Comps', k)]}"  # noqa: E731
+    for key, label, col, fml in (("v_ev_ebitda", "EV/EBITDA FY1 x FY2027E EBITDA", "Q",
+                                  "=({m}*{e}+{nc})*(1-{nci})/{sh}"),
+                                 ("v_pe", "P/E FY1 x FY2027E EPS", "T", "={m}*{eps}")):
+        ws[f"B{r}"] = label
+        for c, stat in zip("FGH", ("q1", "median", "q3")):
+            m = f"${col}${REG[('Comps', stat)]}"
+            ws[f"{c}{r}"] = fml.format(m=m, e=E("d_ebitda27"), nc=E("d_netcash26"), nci=E("d_nci"), sh=E("d_shares"),
+                                       eps=E("d_eps27"))
+            ws[f"{c}{r}"].number_format, ws[f"{c}{r}"].font = F_NUM, font()
+        REG[("Comps", key)] = r
+        r += 1
+    ws[f"B{r}"] = "Comps value per share today (average of the two medians)"
+    ws[f"B{r}"].font = font(bold=True)
+    ws[f"G{r}"] = f"=AVERAGE(G{REG[('Comps', 'v_ev_ebitda')]},G{REG[('Comps', 'v_pe')]})"
+    ws[f"G{r}"].number_format, ws[f"G{r}"].font = F_NUM, font(bold=True)
+    REG[("Comps", "value")] = r
+    ws.freeze_panes = "C13"
+    return ws
+
+
+def CP(key: str, col: str = "C") -> str:
+    return f"'Comps'!${col}${REG[('Comps', key)]}"
+
+
+def build_dcf(wb):
+    sh = Sheet(wb, "DCF", "Discounted cash flow (FCFF)",
+               "NT$ million unless stated. Five-year FCFF FY2026E-FY2030E discounted from the last audited balance "
+               "sheet (31 Dec 2025) with mid-year timing; Gordon-growth terminal value, exit multiple as a "
+               "cross-check. The per-share value is rolled forward to the price date at the cost of equity, less "
+               "the dividend paid in 2026.", periods=[])
+    ws = sh.ws
+    for c in "DEF":
+        ws.column_dimensions[c].width = 2
+    ws["C5"] = "Value"
+    ws["C5"].font, ws["C5"].fill = font(WHITE, bold=True), FILL_HEAD
+    ws["G5"], ws["G6"] = "FY2025A", "31-Dec-25"
+    ws["G5"].font, ws["G5"].fill, ws["G6"].font = font(WHITE, bold=True), FILL_HEAD, font(GREY, italic=True)
+    IS = lambda k, p: ref("IS", k, p)  # noqa: E731
+    BS = lambda k, p: ref("BS", k, p)  # noqa: E731
+    me = lambda k: f"$C${REG[('DCF', k)]}"  # noqa: E731
+
+    sh.section("Cost of capital")
+    _scalar(sh, "rf", "Risk-free rate (Taiwan 10-year)", f"={V('rf')}", F_PCT2, "link")
+    _scalar(sh, "erp_mature", "Mature-market equity risk premium", f"={V('mature_erp')}", F_PCT2, "link")
+    _scalar(sh, "crp", "Country risk premium (Taiwan)", f"={V('crp')}", F_PCT2, "link")
+    _scalar(sh, "erp", "Equity risk premium for Taiwan", f"={me('erp_mature')}+{me('crp')}", F_PCT2)
+    _scalar(sh, "beta_u", "Unlevered beta (industry, cash-corrected)", f"={V('beta_u')}", '0.00', "link",
+            note="regression cross-check in rationale")
+    _scalar(sh, "debt", "Debt incl. leases, 31-Dec-25", f"={BS('total_debt', 'FY2025')}+{BS('leases', 'FY2025')}")
+    _scalar(sh, "mktcap", "Market value of equity", f"={CP('price')}*{IS('shares', 'FY2025')}",
+            note="share price x shares")
+    _scalar(sh, "de", "Debt / equity (market)", f"={me('debt')}/{me('mktcap')}", F_PCT2)
+    _scalar(sh, "tax", "Marginal tax rate", f"={V('tax_marginal')}", F_PCT2, "link")
+    _scalar(sh, "beta_l", "Levered beta", f"={me('beta_u')}*(1+(1-{me('tax')})*{me('de')})", '0.00', bold=True)
+    _scalar(sh, "ke", "Cost of equity", f"={me('rf')}+{me('beta_l')}*{me('erp')}", F_PCT2, bold=True)
+    _scalar(sh, "kd", "Pre-tax cost of debt", f"={V('kd')}", F_PCT2, "link")
+    _scalar(sh, "kd_at", "After-tax cost of debt", f"={me('kd')}*(1-{me('tax')})", F_PCT2)
+    _scalar(sh, "wd", "Debt weight", f"={me('debt')}/({me('debt')}+{me('mktcap')})", F_PCT2)
+    _scalar(sh, "wacc", "WACC", f"=(1-{me('wd')})*{me('ke')}+{me('wd')}*{me('kd_at')}", F_PCT2, bold=True)
+    _scalar(sh, "g", "Terminal growth", f"={V('g')}", F_PCT2, "link")
+
+    sh.section("Free cash flow to the firm (FCFF build)")
+    sh.line("ebit", "EBIT", fc=lambda p: f"={IS('ebit', p)}", fc_style="link")
+    sh.line("etr", "Tax rate on EBIT", fc=lambda p: f"={A('etr', p)}", fmt=F_PCT, fc_style="link")
+    sh.line("nopat", "NOPAT", fc=lambda p: f"={sh.ref('ebit', p)}*(1-{sh.ref('etr', p)})", total=True)
+    sh.line("da", "Add: depreciation and amortisation", fc=lambda p: f"={IS('d_and_a', p)}", fc_style="link")
+    sh.line("capex", "Less: capex", fc=lambda p: f"=-{ref('Schedules', 'capex_total', p)}", fc_style="link")
+    nwc = lambda p: (f"={BS('receivables', p)}+{BS('inventories', p)}-{BS('payables', p)}+{BS('other_ca', p)}"  # noqa
+                     f"-{BS('other_cl', p)}")
+    sh.line("nwc", "Net working capital (trade + other)", nwc, fc=nwc, periods=["FY2025"])
+    sh.line("dnwc", "Less: increase in net working capital",
+            fc=lambda p: f"=-({sh.ref('nwc', p)}-{sh.ref('nwc', PREV[p])})")
+    sh.line("fcff", "Free cash flow to the firm",
+            fc=lambda p: f"={sh.ref('nopat', p)}+{sh.ref('da', p)}+{sh.ref('capex', p)}+{sh.ref('dnwc', p)}",
+            total=True)
+    sh.line("t", "Discount period (years from 31-Dec-25, mid-year)",
+            fc=lambda p: "=0.5" if p == "FY2026" else f"={sh.ref('t', PREV[p])}+1", fmt='0.0')
+    sh.line("df", "Discount factor", fc=lambda p: f"=1/(1+{me('wacc')})^{sh.ref('t', p)}", fmt='0.000')
+    sh.line("pv", "Present value of FCFF", fc=lambda p: f"={sh.ref('fcff', p)}*{sh.ref('df', p)}")
+
+    sh.section("Terminal value and enterprise value")
+    L = lambda k: ref("DCF", k, "FY2030")  # noqa: E731
+    sum_pv = f"SUM({ref('DCF', 'pv', 'FY2026')}:{L('pv')})"
+    _scalar(sh, "sum_pv", "Sum of PV of FCFF, FY2026E-FY2030E", f"={sum_pv}")
+    _scalar(sh, "tv", "Terminal value (Gordon growth) at end-FY2030",
+            f"={L('fcff')}*(1+{me('g')})/({me('wacc')}-{me('g')})")
+    _scalar(sh, "pv_tv", "PV of terminal value", f"={me('tv')}/(1+{me('wacc')})^({L('t')}+0.5)")
+    _scalar(sh, "ev", "Enterprise value at 31-Dec-25", f"={me('sum_pv')}+{me('pv_tv')}", bold=True)
+    _scalar(sh, "tv_share", "Terminal value share of EV", f"={me('pv_tv')}/{me('ev')}", F_PCT)
+    _scalar(sh, "ebitda30", "FY2030E EBITDA", f"={IS('ebitda', 'FY2030')}", style="link")
+    _scalar(sh, "impl_mult", "Implied exit EV/EBITDA (Gordon TV / FY2030E EBITDA)", f"={me('tv')}/{me('ebitda30')}",
+            '0.0"x"')
+    _scalar(sh, "exit_mult", "Exit multiple (cross-check)", f"={V('exit_multiple')}", '0.0"x"', "link")
+    _scalar(sh, "tv_exit", "Terminal value (exit multiple)", f"={me('ebitda30')}*{me('exit_mult')}")
+    _scalar(sh, "ev_exit", "Enterprise value (exit multiple)",
+            f"={me('sum_pv')}+{me('tv_exit')}/(1+{me('wacc')})^({L('t')}+0.5)")
+    _scalar(sh, "impl_g", "Implied perpetual growth in the exit multiple",
+            f"=({me('tv_exit')}*{me('wacc')}-{L('fcff')})/({me('tv_exit')}+{L('fcff')})", F_PCT)
+
+    sh.section("Equity bridge and value per share")
+    _scalar(sh, "net_cash", "Net cash and investments, 31-Dec-25",
+            f"={BS('cash', 'FY2025')}+{BS('st_investments', 'FY2025')}+{BS('lt_investments', 'FY2025')}"
+            f"-{BS('total_debt', 'FY2025')}-{BS('leases', 'FY2025')}", note="cash + ST/LT investments - debt - leases")
+    _scalar(sh, "equity", "Equity value (100%)", f"={me('ev')}+{me('net_cash')}")
+    _scalar(sh, "nci", "Less: non-controlling interests (share of net income, FY2026E)",
+            f"={A('nci_pct', 'FY2026')}", F_PCT, "link", note="minorities valued pro rata to their earnings")
+    _scalar(sh, "eq_parent", "Equity value to Delta shareholders", f"={me('equity')}*(1-{me('nci')})", bold=True)
+    _scalar(sh, "shares", "Shares outstanding (m)", f"={IS('shares', 'FY2025')}", style="link")
+    _scalar(sh, "ps_bs", "Value per share at 31-Dec-25 (NT$)", f"={me('eq_parent')}/{me('shares')}", F_EPS)
+    _scalar(sh, "years", "Years from 31-Dec-25 to price date",
+            f"=({CP('price_date')}-DATE(2025,12,31))/'Schedules'!$B$4", '0.000')
+    _scalar(sh, "dps26", "Less: dividend paid in 2026 (NT$)", f"={ref('Schedules', 'dps_paid', 'FY2026')}", F_EPS,
+            "link")
+    _scalar(sh, "value_today", "DCF value per share today (NT$)",
+            f"={me('ps_bs')}*(1+{me('ke')})^{me('years')}-{me('dps26')}", F_EPS, bold=True)
+    _scalar(sh, "value_today_exit", "Cross-check: value per share today, exit multiple (NT$)",
+            f"=({me('ev_exit')}+{me('net_cash')})*(1-{me('nci')})/{me('shares')}*(1+{me('ke')})^{me('years')}"
+            f"-{me('dps26')}", F_EPS)
+
+    sh.section("Price target (12 months) [ANALYST TO REVIEW]")
+    _scalar(sh, "comps_today", "Comps value per share today (NT$)", f"={CP('value', 'G')}", F_EPS, "link")
+    _scalar(sh, "w_dcf", "Weight on DCF", f"={V('weight_dcf')}", F_PCT, "link")
+    _scalar(sh, "blend", "Blended value today (NT$)",
+            f"={me('w_dcf')}*{me('value_today')}+(1-{me('w_dcf')})*{me('comps_today')}", F_EPS)
+    _scalar(sh, "dps_next", "Dividend expected in the next 12 months (FY2027E, NT$)",
+            f"={ref('Schedules', 'dps_paid', 'FY2027')}", F_EPS, "link")
+    _scalar(sh, "target", "12-month price target (NT$)", f"={me('blend')}*(1+{me('ke')})-{me('dps_next')}", F_EPS,
+            bold=True, note="value today rolled at Ke, less dividend")
+    _scalar(sh, "price", "Share price (NT$)", f"={CP('price')}", F_EPS, "link")
+    _scalar(sh, "upside", "Upside / (downside)", f"={me('target')}/{me('price')}-1", F_PCT, bold=True)
+    _scalar(sh, "rating", "Rating (Buy > +15%, Sell < -10%, else Hold)",
+            f'=IF({me("upside")}>{V("upside_buy")},"Buy",IF({me("upside")}<-{V("downside_sell")},"Sell","Hold"))',
+            "General", bold=True)
+    return sh
+
+
+AI_SHIFTS = [-0.20, -0.10, 0.0, 0.10, 0.20]
+GM_SHIFTS = [-0.02, -0.01, 0.0, 0.01, 0.02]
+WACC_STEPS = [-0.01, -0.005, 0.0, 0.005, 0.01]
+G_STEPS = [-0.01, -0.005, 0.0, 0.005, 0.01]
+
+
+def build_sensitivity(wb, summary: dict):
+    ws = wb.create_sheet("Sensitivity")
+    ws["A1"] = "Sensitivity analysis and reverse DCF"
+    ws["A1"].font = font(NAVY, bold=True, size=14)
+    ws["A2"] = "DCF value per share today (NT$). Grid 1 is live. Grid 2 and the reverse DCF need the whole model " \
+               "re-run per cell, so they are computed by the Python mirror (src/delta/model.py) on the Base case; " \
+               "any cell can be reproduced by entering its shifts on Assumptions."
+    ws["A2"].font = font(GREY, italic=True)
+    ws.column_dimensions["A"].width = 44
+    for c in "BCDEFGH":
+        ws.column_dimensions[c].width = 12
+    D = lambda k: f"'DCF'!$C${REG[('DCF', k)]}"  # noqa: E731
+    fc = lambda k, p: ref("DCF", k, p)  # noqa: E731
+    fcff = f"'DCF'!${COL['FY2026']}${REG[('DCF', 'fcff')]}:${COL['FY2030']}${REG[('DCF', 'fcff')]}"
+    tt = f"'DCF'!${COL['FY2026']}${REG[('DCF', 't')]}:${COL['FY2030']}${REG[('DCF', 't')]}"
+    f30 = f"'DCF'!${COL['FY2030']}${REG[('DCF', 'fcff')]}"
+    t30 = f"'DCF'!${COL['FY2030']}${REG[('DCF', 't')]}"
+
+    # grid 1: WACC x g (live)
+    r = 4
+    ws[f"A{r}"] = "1. WACC (rows) x terminal growth (columns) - live"
+    ws[f"A{r}"].font = font(NAVY, bold=True)
+    r += 1
+    ws[f"B{r}"] = "WACC \\ g"
+    ws[f"B{r}"].font = font(WHITE, bold=True)
+    ws[f"B{r}"].fill = FILL_HEAD
+    gcols = "CDEFG"
+    for c, step in zip(gcols, G_STEPS):
+        ws[f"{c}{r}"] = f"={D('g')}+({step})"
+        ws[f"{c}{r}"].number_format, ws[f"{c}{r}"].font, ws[f"{c}{r}"].fill = F_PCT, font(WHITE, bold=True), FILL_HEAD
+    hdr = r
+    grid1 = []
+    for step in WACC_STEPS:
+        r += 1
+        ws[f"B{r}"] = f"={D('wacc')}+({step})"
+        ws[f"B{r}"].number_format, ws[f"B{r}"].font, ws[f"B{r}"].fill = F_PCT, font(WHITE, bold=True), FILL_HEAD
+        for c in gcols:
+            w, g = f"$B{r}", f"{c}${hdr}"
+            ws[f"{c}{r}"] = (f"=(SUMPRODUCT({fcff}/(1+{w})^{tt})+{f30}*(1+{g})/({w}-{g})/(1+{w})^({t30}+0.5)"
+                             f"+{D('net_cash')})*(1-{D('nci')})/{D('shares')}*(1+{D('ke')})^{D('years')}-{D('dps26')}")
+            ws[f"{c}{r}"].number_format, ws[f"{c}{r}"].font = '#,##0', font()
+            grid1.append(f"{c}{r}")
+    REG[("Sensitivity", "g1_centre")] = hdr + 3
+    ws[f"E{hdr + 3}"].font = font(bold=True)
+    ws[f"E{hdr + 3}"].fill = FILL_KEY
+    REG[("Sensitivity", "g1_range")] = (grid1[0], grid1[-1])
+
+    # grid 2: AI capex growth shift x gross-margin shift (Python mirror)
+    r += 3
+    ws[f"A{r}"] = "2. AI data-centre capex growth shift (columns, pp p.a.) x gross margin shift (rows, pp) - Python mirror"
+    ws[f"A{r}"].font = font(NAVY, bold=True)
+    r += 1
+    ws[f"B{r}"] = "GM \\ AI"
+    ws[f"B{r}"].font, ws[f"B{r}"].fill = font(WHITE, bold=True), FILL_HEAD
+    for c, x in zip(gcols, AI_SHIFTS):
+        ws[f"{c}{r}"] = x
+        ws[f"{c}{r}"].number_format, ws[f"{c}{r}"].font, ws[f"{c}{r}"].fill = '+0%;-0%;0%', font(WHITE, bold=True), \
+            FILL_HEAD
+    vals = summary["sensitivity_ai_gm"]["values"]
+    g2_top = r + 1
+    for i, gm in enumerate(GM_SHIFTS):
+        r += 1
+        ws[f"B{r}"] = gm
+        ws[f"B{r}"].number_format, ws[f"B{r}"].font, ws[f"B{r}"].fill = '+0.0%;-0.0%;0.0%', font(WHITE, bold=True), \
+            FILL_HEAD
+        for j, c in enumerate(gcols):
+            ws[f"{c}{r}"] = round(vals[i][j], 4)
+            ws[f"{c}{r}"].number_format, ws[f"{c}{r}"].font = '#,##0', font(GREY, italic=True)
+    REG[("Sensitivity", "g2_centre")] = g2_top + 2
+    ws[f"E{g2_top + 2}"].fill = FILL_KEY
+    REG[("Sensitivity", "g2_rows")] = (g2_top, r)
+    r += 1
+    ws[f"A{r}"] = "Grey italics: values computed by src/delta/model.py (Base case), not live formulas."
+    ws[f"A{r}"].font = font(GREY, italic=True, size=9)
+
+    # reverse DCF
+    rd = summary["reverse_dcf"]
+    r += 2
+    ws[f"A{r}"] = "3. Reverse DCF: what AI growth does the share price imply?"
+    ws[f"A{r}"].font = font(NAVY, bold=True)
+    r += 1
+    ws[f"A{r}"], ws[f"C{r}"] = "Share price (NT$)", f"={CP('price')}"
+    ws[f"C{r}"].number_format, ws[f"C{r}"].font = F_NUM, font(GREEN)
+    r += 1
+    ws[f"A{r}"], ws[f"C{r}"] = "Implied shift to AI capex growth, every year FY2027E-FY2030E (Python solve)", \
+        round(rd["shift"], 6)
+    ws[f"C{r}"].number_format, ws[f"C{r}"].font = '+0.0%;-0.0%', font(GREY, italic=True, bold=True)
+    REG[("Sensitivity", "rd_shift")] = r
+    r += 1
+    for c, p in zip("CDEF", FC[1:]):
+        ws[f"{c}{r}"] = HEAD[p]
+        ws[f"{c}{r}"].font, ws[f"{c}{r}"].fill = font(WHITE, bold=True), FILL_FC_HEAD
+    ws[f"G{r}"] = "CAGR"
+    ws[f"G{r}"].font, ws[f"G{r}"].fill = font(WHITE, bold=True), FILL_FC_HEAD
+    r += 1
+    ws[f"A{r}"] = "AI data-centre capex growth: live scenario"
+    for c, p in zip("CDEF", FC[1:]):
+        ws[f"{c}{r}"] = f"={A('dc_capex_growth', p)}"
+        ws[f"{c}{r}"].number_format, ws[f"{c}{r}"].font = F_PCT, font(GREEN)
+    ws[f"G{r}"] = f"=((1+C{r})*(1+D{r})*(1+E{r})*(1+F{r}))^(1/4)-1"
+    ws[f"G{r}"].number_format = F_PCT
+    r += 1
+    ws[f"A{r}"] = "AI data-centre capex growth: implied by the share price"
+    ws[f"A{r}"].font = font(bold=True)
+    for c in "CDEF":
+        ws[f"{c}{r}"] = f"={c}{r - 1}+$C${REG[('Sensitivity', 'rd_shift')]}"
+        ws[f"{c}{r}"].number_format, ws[f"{c}{r}"].font = F_PCT, font(bold=True)
+    ws[f"G{r}"] = f"=((1+C{r})*(1+D{r})*(1+E{r})*(1+F{r}))^(1/4)-1"
+    ws[f"G{r}"].number_format, ws[f"G{r}"].font = F_PCT, font(bold=True)
+    r += 1
+    for label, val, fmt in (("FY2030E revenue at implied growth (NT$ m)", rd["revenue_2030"], F_NUM),
+                            ("FY2030E AI data-centre revenue at implied growth (NT$ m)", rd["ai_revenue_2030"], F_NUM),
+                            ("FY2030E AI data-centre share of revenue at implied growth", rd["ai_share_2030"], F_PCT),
+                            ("FY2030E EPS at implied growth (NT$)", rd["eps_2030"], F_EPS)):
+        ws[f"A{r}"], ws[f"C{r}"] = label, round(val, 6)
+        ws[f"C{r}"].number_format, ws[f"C{r}"].font = fmt, font(GREY, italic=True)
+        r += 1
+    ws[f"A{r}"] = (f"Check it yourself: enter {rd['shift']:+.4f} in the AI shift cell on Assumptions; the DCF value "
+                   "today then equals the share price (tested in tests/test_model_matches_excel.py).")
+    ws[f"A{r}"].font = font(GREY, italic=True, size=9)
+    return ws
+
+
+def build_football(wb, summary: dict):
+    ws = wb.create_sheet("Football field")
+    ws["A1"] = "Valuation summary (football field)"
+    ws["A1"].font = font(NAVY, bold=True, size=14)
+    ws["A2"] = "Value per share today, NT$. Live ranges link to DCF, Comps and Sensitivity; scenario values come " \
+               "from the Python mirror (each scenario is a full re-run of the model)."
+    ws["A2"].font = font(GREY, italic=True)
+    ws.column_dimensions["A"].width = 52
+    ws.column_dimensions["E"].width = 60
+    for c, t in zip("ABCDE", ["Method", "Low", "High", "Mid", "Basis"]):
+        ws[f"{c}4"] = t
+        ws[f"{c}4"].font, ws[f"{c}4"].fill = font(WHITE, bold=True), FILL_HEAD
+    g1a, g1b = REG[("Sensitivity", "g1_range")]
+    t2, b2 = REG[("Sensitivity", "g2_rows")]
+    sc = summary["scenarios"]
+    rows = [
+        ("52-week trading range", f"={CP('low_52w')}", f"={CP('high_52w')}", "Daily closes, last 12 months"),
+        ("Comps: EV/EBITDA FY1 (peer 25th-75th pct)", f"='Comps'!F{REG[('Comps', 'v_ev_ebitda')]}",
+         f"='Comps'!H{REG[('Comps', 'v_ev_ebitda')]}", "On FY2027E EBITDA"),
+        ("Comps: P/E FY1 (peer 25th-75th pct)", f"='Comps'!F{REG[('Comps', 'v_pe')]}",
+         f"='Comps'!H{REG[('Comps', 'v_pe')]}", "On FY2027E EPS"),
+        ("DCF: WACC +/-1pp, terminal growth +/-1pp", f"=MIN('Sensitivity'!{g1a}:{g1b})",
+         f"=MAX('Sensitivity'!{g1a}:{g1b})", "Live grid 1"),
+        ("DCF: AI capex growth +/-20pp, margin +/-2pp", f"=MIN('Sensitivity'!C{t2}:G{b2})",
+         f"=MAX('Sensitivity'!C{t2}:G{b2})", "Grid 2 (Python mirror)"),
+        ("DCF: Bear to Bull scenario", round(sc["Bear"]["dcf_value_today"], 4), round(sc["Bull"]["dcf_value_today"], 4),
+         "Python mirror, full scenario re-runs"),
+    ]
+    r = 5
+    for label, lo, hi, basis in rows:
+        ws[f"A{r}"], ws[f"B{r}"], ws[f"C{r}"], ws[f"D{r}"], ws[f"E{r}"] = label, lo, hi, f"=AVERAGE(B{r}:C{r})", basis
+        for c in "BCD":
+            ws[f"{c}{r}"].number_format = '#,##0'
+            ws[f"{c}{r}"].font = font(GREY, italic=True) if not str(ws[f"{c}{r}"].value).startswith("=") else font()
+        ws[f"E{r}"].font = font(GREY, size=9)
+        r += 1
+    r += 1
+    for label, fml in (("Share price", f"={CP('price')}"), ("DCF value today (live scenario)",
+                                                            f"='DCF'!$C${REG[('DCF', 'value_today')]}"),
+                       ("Comps value today", f"={CP('value', 'G')}"),
+                       ("12-month price target", f"='DCF'!$C${REG[('DCF', 'target')]}")):
+        ws[f"A{r}"], ws[f"B{r}"] = label, fml
+        ws[f"B{r}"].number_format, ws[f"B{r}"].font = '#,##0', font(GREEN, bold=True)
+        r += 1
+    return ws
 
 
 def build_checks(wb):
@@ -973,6 +1435,16 @@ def build_checks(wb):
     chk("fc_q4", "4Q26E revenue above 3Q26 (management guidance)",
         fc=lambda p: (f"={A26('q4_revenue')}>'Segments'!P{REG[('Segments', 'rev_total')]}" if p == "FY2026"
                       else None), note="3Q26 transcript p.6", fc_periods=["FY2026"])
+    sh.section("Valuation")
+    dv = f"'DCF'!$C${REG[('DCF', 'value_today')]}"
+    chk("val_grid", "Sensitivity grid centre = DCF value today",
+        lambda p: f"=ABS('Sensitivity'!E{REG[('Sensitivity', 'g1_centre')]}-{dv})<={tol}", periods=["FY2021"])
+    chk("val_mirror", "Python mirror = workbook DCF value (Base, no shifts; within 0.1%)",
+        lambda p: (f"=IF(AND('Assumptions'!$B$3=\"Base\",{V('ai_shift')}=0,{V('gm_shift')}=0),"
+                   f"ABS('Sensitivity'!E{REG[('Sensitivity', 'g2_centre')]}/{dv}-1)<=0.001,TRUE)"),
+        periods=["FY2021"], note="tests/test_model_matches_excel.py checks every year")
+    chk("val_wacc_g", "WACC above terminal growth",
+        lambda p: f"='DCF'!$C${REG[('DCF', 'wacc')]}>'DCF'!$C${REG[('DCF', 'g')]}", periods=["FY2021"])
     sh.section("Source extraction (Python)")
     chk("py_checks", "All tie-outs in data/processed/checks.csv pass",
         lambda p: f"={R('Historicals', 'checks_passed', 'FY2021')}={R('Historicals', 'checks_total', 'FY2021')}",
@@ -1005,18 +1477,25 @@ def build_cover(wb):
         ("Units", "NT$ million unless stated (reported in NT$ thousands, Taiwan IFRS)"),
         ("Latest reported period", "9M26 (3Q26 earnings slides, 29 Oct 2026); latest full statements 1H26"),
         ("Forecast basis", "FY2026E = 9M26 actual + 4Q26E; balance sheet rolls forward from FY2025A"),
-        ("Share price and date", "Set in M4 (yfinance, 2308.TW)"),
-        ("Rating", "[ANALYST TO REVIEW] - set in M5"),
-        ("12-month price target", "[ANALYST TO REVIEW] - set in M4/M5"),
+        ("Share price (NT$)", f"='Comps'!$C${REG[('Comps', 'price')]}"),
+        ("Price date", f"='Comps'!$C${REG[('Comps', 'price_date')]}"),
+        ("DCF value per share today (NT$)", f"='DCF'!$C${REG[('DCF', 'value_today')]}"),
+        ("Comps value per share today (NT$)", f"='DCF'!$C${REG[('DCF', 'comps_today')]}"),
+        ("12-month price target (NT$) [ANALYST TO REVIEW]", f"='DCF'!$C${REG[('DCF', 'target')]}"),
+        ("Upside / (downside)", f"='DCF'!$C${REG[('DCF', 'upside')]}"),
+        ("Rating [ANALYST TO REVIEW]", f"='DCF'!$C${REG[('DCF', 'rating')]}"),
         ("Scenario", "='Assumptions'!B3"),
-        ("Model status", "M3 - forecasts FY2026E-FY2030E; draft assumptions [ANALYST TO REVIEW]"),
+        ("Model status", "M4 - valuation on draft assumptions [ANALYST TO REVIEW]"),
         ("Last updated", dt.date.today().isoformat()),
     ]
     r = 6
+    fmts = {"Price date": "yyyy-mm-dd", "Upside / (downside)": F_PCT}
     for k, v in items:
         ws[f"B{r}"], ws[f"C{r}"] = k, v
         ws[f"B{r}"].font = font(bold=True)
         ws[f"C{r}"].font = font(GREEN if str(v).startswith("=") else BLACK)
+        ws[f"C{r}"].number_format = fmts.get(k, '#,##0.00' if "NT$" in k else "General")
+        ws[f"C{r}"].alignment = Alignment(horizontal="left")
         r += 1
     r += 1
     ws[f"B{r}"] = "ALL CHECKS PASS"
@@ -1035,7 +1514,19 @@ def build_cover(wb):
                 ("AI data-centre % of revenue", "Segments", "ai_share", F_PCT),
                 ("EBIT margin", "IS", "ebit_margin", F_PCT), ("EPS, basic (NT$)", "IS", "eps", F_EPS),
                 ("EPS growth", "IS", "eps_growth", F_PCT), ("Dividend per share paid (NT$)", "Schedules", "dps_paid", F_EPS),
-                ("Free cash flow", "CF", "fcf", F_NUM), ("Net debt / (net cash)", "BS", "net_debt", F_NUM)]
+                ("Free cash flow", "CF", "fcf", F_NUM), ("Net debt / (net cash)", "BS", "net_debt", F_NUM),
+                ("P/E at current price", None, "pe", '0.0"x"'), ("EV/EBITDA at current price", None, "ev_ebitda",
+                                                                  '0.0"x"'),
+                ("Dividend yield at current price", None, "yield", F_PCT)]
+    price = f"'Comps'!$C${REG[('Comps', 'price')]}"
+    mcap = f"'DCF'!$C${REG[('DCF', 'mktcap')]}"
+    derived = {
+        "pe": lambda p: f"={price}/{ref('IS', 'eps', p)}",
+        "ev_ebitda": lambda p: (f"=({mcap}-({ref('BS', 'cash', p)}+{ref('BS', 'st_investments', p)}"
+                                f"+{ref('BS', 'lt_investments', p)}-{ref('BS', 'total_debt', p)}-{ref('BS', 'leases', p)}))"
+                                f"/{ref('IS', 'ebitda', p)}"),
+        "yield": lambda p: f"={ref('Schedules', 'dps_paid', p)}/{price}",
+    }
     for i, p in enumerate(heads):
         c = ws.cell(row=r, column=4 + i, value=HEAD[p])
         c.font, c.alignment = font(WHITE, bold=True), Alignment(horizontal="right")
@@ -1047,6 +1538,10 @@ def build_cover(wb):
         ws[f"B{r}"] = label
         ws[f"B{r}"].font = font()
         for i, p in enumerate(heads):
+            if sheet is None:
+                c = ws.cell(row=r, column=4 + i, value=derived[key](p))
+                c.font, c.number_format = font(), fmt
+                continue
             cell_ref = f"{COL[p]}{REG[(sheet, key)]}"
             if wb[sheet][cell_ref].value is None and p not in FC:
                 continue
@@ -1062,6 +1557,10 @@ def build_cover(wb):
              ("Segments", "Segment revenue build incl. AI data-centre line; segment profit"),
              ("IS / BS / CF", "Three statements: historicals by formula, FY2026E-FY2030E forecast"),
              ("Schedules", "Working capital, capex, PP&E, intangibles, debt, tax, dividends, returns"),
+             ("DCF", "WACC, FCFF, terminal value, equity bridge, value per share, price target and rating"),
+             ("Comps", "Peer multiples (market snapshot) and implied value for Delta"),
+             ("Sensitivity", "WACC x growth (live), AI growth x margin, reverse DCF"),
+             ("Football field", "Valuation ranges by method against the share price"),
              ("Checks", "Integrity tests; all must be TRUE")]
     for k, v in guide:
         ws[f"B{r}"], ws[f"C{r}"] = k, v
@@ -1096,6 +1595,13 @@ def main() -> int:
     build_segments(wb, segs)
     build_schedules(wb)
     build_assumptions(wb, a)
+    peers = pd.read_csv(MARKET / "peers_snapshot.csv")
+    snap = json.loads((MARKET / "snapshot.json").read_text())
+    summary = json.loads(SUMMARY.read_text())
+    build_comps(wb, peers, snap, summary["low_52w"], summary["high_52w"])
+    build_dcf(wb)
+    build_sensitivity(wb, summary)
+    build_football(wb, summary)
     build_checks(wb)
     finalize()
     build_cover(wb)
@@ -1106,7 +1612,8 @@ def main() -> int:
         ws.sheet_properties.pageSetUpPr.fitToPage = True
         ws.print_options.gridLines = False
         ws.oddFooter.center.text = "Delta Electronics (2308.TW) model - &A - page &P of &N"
-    order = ["Cover", "Assumptions", "Historicals", "Segments", "IS", "BS", "CF", "Schedules", "Checks"]
+    order = ["Cover", "Assumptions", "Historicals", "Segments", "IS", "BS", "CF", "Schedules", "DCF", "Comps",
+             "Sensitivity", "Football field", "Checks"]
     wb._sheets = [wb[n] for n in order]
     for ws in wb.worksheets:
         ws.sheet_properties.tabColor = {"Cover": NAVY, "Assumptions": "FFC000", "Checks": "70AD47"}.get(ws.title)

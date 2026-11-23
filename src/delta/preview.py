@@ -15,7 +15,7 @@ import pymupdf
 ROOT = Path(__file__).resolve().parents[2]
 MODEL = ROOT / "model" / "delta_model.xlsx"
 FIG = ROOT / "report" / "figures"
-SHEETS = {"IS": "model_income_statement.png", "Checks": "model_checks.png"}
+SHEETS = {"IS": "model_income_statement.png", "DCF": "model_dcf.png", "Checks": "model_checks.png"}
 
 
 def main() -> int:

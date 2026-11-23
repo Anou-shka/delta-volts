@@ -1,0 +1,12 @@
+key,label,value,unit,source,rationale
+rf,Risk-free rate: Taiwan 10-year government bond yield,2.03,pct,"TPEx Newsletter Nov 2026 (bond market review), yield at 31 Oct 2026 | data/raw/market/tpex_newsletter_202611_bond_market.html",Latest month-end primary figure; up from 1.92% at 30 Sep. NT$ cash flows so a NT$ risk-free rate
+mature_erp,Mature-market equity risk premium,4.23,pct,"Damodaran ctryprem.xlsx (updated 5 Jan 2026), ERPs by country: Taiwan total ERP 5.006% less CRP 0.776% | data/raw/damodaran/ctryprem.xlsx",Implied S&P 500 premium at the start of 2026
+crp,Country risk premium: Taiwan (Aa3),0.776,pct,"Damodaran ctryprem.xlsx (5 Jan 2026), ERPs by country, Taiwan | data/raw/damodaran/ctryprem.xlsx",Rating-based default spread scaled by relative equity volatility
+beta_u,Unlevered beta: Electrical Equipment (emerging markets; cash-corrected),1.45,x,"Damodaran betaemerg.xls (5 Jan 2026), Industry Averages, Electrical Equipment, unlevered beta corrected for cash 1.450 | data/raw/damodaran/betaemerg.xls",[ANALYST TO REVIEW] Bottom-up beta. Cross-check: regression vs TAIEX 2y weekly 1.73 (Blume-adjusted 1.49); 5y 1.53 (1.35)
+tax_marginal,Marginal tax rate (debt tax shield; beta relevering),20,pct,Taiwan statutory corporate income tax rate,Statutory rate; forecast tax uses the effective rate on Assumptions
+kd,Pre-tax cost of debt,3.2,pct,Model Schedules: FY2025 finance costs / average debt,Delta's own implied borrowing cost
+g,Terminal growth rate (nominal NT$),2.0,pct,Analyst judgement,"[ANALYST TO REVIEW] Kept at or below the NT$ risk-free rate (2.03%), the long-run ceiling for nominal growth in a NT$ DCF"
+exit_multiple,Exit EV/EBITDA multiple (cross-check only),12,x,Analyst judgement; peers trade at ~12-20x trailing EBITDA (peers_snapshot.csv),[ANALYST TO REVIEW] Mature-business multiple in 2030; shown beside the Gordon value
+weight_dcf,Price target weight on DCF,50,pct,Analyst judgement,[ANALYST TO REVIEW] DCF captures the AI growth path; comps anchor to where the market prices peers today
+upside_buy,Rating rule: Buy if upside above,15,pct,SPEC.md section 5,Spec rule
+downside_sell,Rating rule: Sell if downside beyond,10,pct,SPEC.md section 5,Spec rule

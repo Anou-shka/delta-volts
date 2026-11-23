@@ -177,3 +177,52 @@ FY2025 Infrastructure revenue grew 82% to NT$182.0bn, and its segment profit ros
 4. **4Q26E revenue:** Base NT$218bn.
 5. **AI allocation to Power Electronics** (power 85%, cooling 40%, other 30%), which affects segment mix and so margins.
 6. **Payout:** at 50%, net cash rises to about NT$309bn by FY2030E. Is that credible, or should the payout rise?
+
+---
+
+## M4 — Valuation (23 Nov 2026) — *on the draft Base case*
+
+### What was built
+
+- **`src/delta/market.py`:** a dated market snapshot in `data/raw/market/`, taken 23 Nov 2026. It covers Delta's price of NT$990, the five peers with consensus estimates, FX, and five years of prices for Delta and the TAIEX. The risk-free rate comes from the TPEx bond-market review; the ERP, country risk premium and industry betas come from Damodaran (January 2026).
+- **`model/valuation_inputs.csv`:** single-value valuation inputs, each with source and rationale.
+- **Four new workbook sheets:**
+  - **DCF:** WACC build, FCFF, Gordon and exit-multiple terminal values, equity bridge, value per share, target and rating;
+  - **Comps:** peer multiples and the implied value for Delta;
+  - **Sensitivity:** a live WACC × growth grid, an AI-growth × margin grid and the reverse DCF;
+  - **Football field:** valuation ranges by method.
+
+  The workbook now has 2,562 formulas, zero errors and all checks TRUE.
+- **`src/delta/model.py`:** the Python mirror. It reproduces the full forecast, DCF, comps and target, and adds the reverse DCF, the AI × margin grid and the scenario values. `tests/test_model_matches_excel.py` proves it agrees with the recalculated workbook within 0.1% for every forecast year in Bear, Base and Bull. Entering the reverse-DCF answer in the workbook reproduces the share price, and a corner of the sensitivity grid reproduces too. That makes 24 tests, all passing.
+- **Charts:** `report/figures/football_field.png` and `sensitivity.png`.
+
+### Results (draft Base case; price NT$990 on 23 Nov 2026)
+
+| | |
+|---|---|
+| WACC | 9.26% (cost of equity 9.46%; levered beta 1.48) |
+| DCF value per share today | NT$675 (Gordon, g 2.0%; terminal value 78% of EV) |
+| DCF with 12× exit EBITDA | NT$1,010 |
+| Comps value per share | NT$859 (EV/EBITDA NT$982; P/E NT$737) |
+| 12-month target (50/50, rolled) | NT$821, −17% → **Sell** under the spec rule |
+| Bear / Base / Bull target | NT$562 / 821 / 1,033 |
+| Reverse DCF | the price implies AI data-centre capex growth of **48% a year in FY2027–30**, against 14% in the draft Base, with AI at 83% of FY2030 revenue |
+
+### The 3 most important modelling choices
+
+1. **Terminal value: Gordon at a growth rate capped by the NT$ risk-free rate, with an exit multiple beside it.** In a NT$ model, perpetual growth above the 2.03% risk-free rate is hard to defend. But it implies 7.3× FY2030E EBITDA, well below where peers trade. Showing both numbers (NT$675 vs NT$1,010) puts the question where it belongs: how much growth is left after 2030?
+2. **Minority interests valued at their share of earnings, not book.** Delta Thailand is listed and worth far more than its book minority interest. Deducting book NCI (NT$57bn) would overstate Delta's equity, so the bridge removes 10.5% of equity value, the minorities' share of net income.
+3. **A mirror model that proves the spreadsheet.** Every number the report quotes is computed twice, in the workbook's formulas and in Python, and a test fails if they disagree by more than 0.1%. The mirror also does the reverse DCF and the full-model sensitivity grid, and the workbook can reproduce any of them through two shift inputs.
+
+### 3 questions an interviewer could ask
+
+1. "Your DCF says NT$675 and the stock is NT$990 after halving. Why isn't that a screaming Buy for you?" (Answer: on the draft Base case even the stressed grids top out below NT$990. The market is pricing AI capex growth of about 48% a year, or a much higher terminal value. Then say which of those you believe.)
+2. "Why cap terminal growth at the risk-free rate?"
+3. "How do you value Delta Thailand's minority stake?"
+
+### Decisions needed from the analyst
+
+1. **Terminal method and growth (D14):** Gordon at 2%, a higher g, or the exit multiple. The value range is NT$675–1,010.
+2. **Base-case AI path (M3 drafts):** the draft FY2027E EPS of NT$43.9 sits well below consensus (NT$60.4). Either defend the gap or move towards consensus.
+3. **Beta (D12):** bottom-up 1.48 vs regression 1.73 (2y raw).
+4. **Target blend and rating (D16).** The rating is yours.

@@ -9,6 +9,8 @@
 | `processed/monthly_revenue.csv` | Unaudited monthly revenue releases, Jan 2025 – Oct 2026 (NT$ millions), with segment mix %. |
 | `slides_3q26.csv` | 3Q26 and 9M26 figures hand-entered from the 3Q26 earnings slides (page per row). Used until the English Q3 2026 statements are published; tied to the audited 1H26 note by the checks. |
 | `processed/checks.csv` | Every tie-out check (subtotals, statement links, cash, restatements, segments, monthly vs quarterly). |
+| `raw/market/` | Market snapshot (23 Nov 2026, Yahoo Finance via yfinance): `prices_daily.csv` (2308.TW and TAIEX, 5 years), `peers_snapshot.csv`, `snapshot.json` (date, FX). Also the TPEx November 2026 bond-market review (Taiwan 10-year yield). Refresh with `make market`. |
+| `raw/damodaran/` | Damodaran datasets updated 5 Jan 2026: `ctryprem.xlsx` (ERP and country risk), `betaemerg.xls` / `betaGlobal.xls` (industry betas), `histimpl.xls`. |
 | `sources.csv` | Every sourced figure: value, unit, period, document, page and URL, date accessed. Built by `extract.py` from the filings plus `sources_manual.csv` (figures from transcripts and slides). |
 
 ## Source documents (all from https://www.deltaww.com/en-US/investors)

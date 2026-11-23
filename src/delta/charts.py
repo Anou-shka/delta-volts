@@ -204,6 +204,108 @@ def chart_forecast(mode: str) -> Path:
     return out
 
 
+SUMMARY = ROOT / "model" / "valuation_summary.json"
+DIVERGING = {"light": ("#e34948", "#f0efec", "#2a78d6"), "dark": ("#e66767", "#383835", "#3987e5")}
+
+
+def _summary() -> dict:
+    import json
+    return json.loads(SUMMARY.read_text())
+
+
+def chart_football(mode: str) -> Path:
+    """Horizontal range bars: value per share by method, against the share price and the target."""
+    t = THEMES[mode]
+    s = _summary()
+    c = s["comps"]
+    wg = [v for row in s["sensitivity_wacc_g"]["values"] for v in row]
+    ag = [v for row in s["sensitivity_ai_gm"]["values"] for v in row]
+    rows = [("52-week trading range", s["low_52w"], s["high_52w"]),
+            ("Comps: EV/EBITDA FY1 (peer IQR)", c["ev_ebitda"]["q1"], c["ev_ebitda"]["q3"]),
+            ("Comps: P/E FY1 (peer IQR)", c["pe"]["q1"], c["pe"]["q3"]),
+            ("DCF: WACC +/-1pp, growth +/-1pp", min(wg), max(wg)),
+            ("DCF: AI growth +/-20pp, margin +/-2pp", min(ag), max(ag)),
+            ("DCF: Bear to Bull scenario", s["scenarios"]["Bear"]["dcf_value_today"],
+             s["scenarios"]["Bull"]["dcf_value_today"])]
+    fig, ax = plt.subplots(figsize=(8, 4.4), dpi=200)
+    fig.patch.set_facecolor(t["surface"])
+    _style(ax, t)
+    ax.yaxis.grid(False)
+    ax.xaxis.grid(True, color=t["grid"], linewidth=0.8)
+    for i, (label, lo, hi) in enumerate(rows[::-1]):
+        ax.barh(i, hi - lo, left=lo, height=0.5, color=t["series"][0], edgecolor=t["surface"], linewidth=1.5)
+        ax.text(lo - 12, i, f"{lo:,.0f}", va="center", ha="right", fontsize=8.5, color=t["text2"])
+        ax.text(hi + 12, i, f"{hi:,.0f}", va="center", ha="left", fontsize=8.5, color=t["text2"])
+    ax.set_yticks(range(len(rows)), [r[0] for r in rows[::-1]])
+    above_target = s["price"] >= s["target"]
+    for x, label, style, ha in ((s["price"], f"Share price {s['price']:,.0f}", "-", "left" if above_target else "right"),
+                                (s["target"], f"Target {s['target']:,.0f} (draft)", (0, (3, 3)),
+                                 "right" if above_target else "left")):
+        ax.axvline(x, color=t["text"], linewidth=1.2, linestyle=style)
+        ax.text(x + (12 if ha == "left" else -12), len(rows) - 0.35, label, ha=ha, va="bottom", fontsize=9,
+                color=t["text"])
+    hi_all = max(r[2] for r in rows)
+    ax.set_xlim(0, hi_all * 1.1)
+    ax.set_ylim(-0.6, len(rows) - 0.1)
+    ax.set_xlabel("Value per share, NT$", color=t["text2"], fontsize=10)
+    fig.suptitle("Valuation range by method", x=0.02, ha="left", fontsize=13, color=t["text"], fontweight="semibold")
+    fig.text(0.02, 0.005, f"Price {s['price_date']}. Draft Base case [ANALYST TO REVIEW]. DCF values rolled to the "
+             "price date; comps on FY2027E.", fontsize=7.5, color=t["text2"])
+    fig.tight_layout(rect=(0, 0.03, 1, 0.97))
+    out = FIG / f"football_field{'' if mode == 'light' else '_dark'}.png"
+    fig.savefig(out, facecolor=t["surface"])
+    plt.close(fig)
+    return out
+
+
+def chart_sensitivity(mode: str) -> Path:
+    """Two 5x5 value grids, coloured by distance from the share price (diverging around it)."""
+    import numpy as np
+    from matplotlib.colors import LinearSegmentedColormap, TwoSlopeNorm
+    t = THEMES[mode]
+    s = _summary()
+    lo_c, mid_c, hi_c = DIVERGING[mode]
+    cmap = LinearSegmentedColormap.from_list("div", [lo_c, mid_c, hi_c])
+    grids = [(np.array(s["sensitivity_wacc_g"]["values"]), "WACC x terminal growth",
+              [f"{x:.1%}" for x in s["sensitivity_wacc_g"]["g"]], [f"{x:.2%}" for x in s["sensitivity_wacc_g"]["wacc"]],
+              "Terminal growth", "WACC"),
+             (np.array(s["sensitivity_ai_gm"]["values"]), "AI capex growth x gross margin",
+              [f"{x:+.0%}" for x in s["sensitivity_ai_gm"]["ai_shifts"]],
+              [f"{x:+.0%}" for x in s["sensitivity_ai_gm"]["gm_shifts"]], "AI capex growth shift (pp p.a.)",
+              "Margin shift (pp)")]
+    allv = np.concatenate([g[0].ravel() for g in grids])
+    span = max(abs(allv.max() - s["price"]), abs(allv.min() - s["price"]))
+    norm = TwoSlopeNorm(vmin=s["price"] - span, vcenter=s["price"], vmax=s["price"] + span)
+    fig, axes = plt.subplots(1, 2, figsize=(9, 4.3), dpi=200)
+    fig.patch.set_facecolor(t["surface"])
+    for ax, (v, title, xt, yt, xl, yl) in zip(axes, grids):
+        ax.set_facecolor(t["surface"])
+        ax.imshow(v, cmap=cmap, norm=norm, aspect="auto")
+        for (i, j), val in np.ndenumerate(v):
+            ax.text(j, i, f"{val:,.0f}", ha="center", va="center", fontsize=9,
+                    color=t["text"], fontweight="semibold" if (i, j) == (2, 2) else "normal")
+        ax.set_xticks(range(5), xt, fontsize=8.5, color=t["text2"])
+        ax.set_yticks(range(5), yt, fontsize=8.5, color=t["text2"])
+        ax.set_xlabel(xl, color=t["text2"], fontsize=9)
+        ax.set_ylabel(yl, color=t["text2"], fontsize=9)
+        ax.set_title(title, fontsize=10.5, color=t["text"], loc="left")
+        for sp in ax.spines.values():
+            sp.set_visible(False)
+        ax.tick_params(length=0)
+        ax.set_xticks(np.arange(-0.5, 5), minor=True)
+        ax.set_yticks(np.arange(-0.5, 5), minor=True)
+        ax.grid(which="minor", color=t["surface"], linewidth=2)
+    fig.suptitle(f"DCF value per share (NT$) vs share price {s['price']:,.0f}: red below, blue above", x=0.02,
+                 ha="left", fontsize=12.5, color=t["text"], fontweight="semibold")
+    fig.text(0.02, 0.01, "Draft Base case [ANALYST TO REVIEW]; centre cell = Base. Right grid from the Python mirror "
+             "(full model re-run per cell).", fontsize=7.5, color=t["text2"])
+    fig.tight_layout(rect=(0, 0.04, 1, 0.94))
+    out = FIG / f"sensitivity{'' if mode == 'light' else '_dark'}.png"
+    fig.savefig(out, facecolor=t["surface"])
+    plt.close(fig)
+    return out
+
+
 def main() -> int:
     FIG.mkdir(parents=True, exist_ok=True)
     _font()
@@ -212,6 +314,9 @@ def main() -> int:
         print(chart_margins(mode))
         if MODEL.exists():
             print(chart_forecast(mode))
+        if SUMMARY.exists():
+            print(chart_football(mode))
+            print(chart_sensitivity(mode))
     return 0
 
 

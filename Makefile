@@ -1,7 +1,7 @@
 # Rebuild everything from primary sources. `make all` runs every stage in order.
 PY ?= python3
 
-.PHONY: all data fetch extract charts model preview test clean
+.PHONY: all data fetch extract market charts model preview test clean
 
 all: data model charts
 
@@ -16,7 +16,11 @@ extract:          ## data/raw/*.pdf -> data/processed/*.csv + data/sources.csv
 charts:           ## data/processed -> report/figures/*.png
 	$(PY) -m src.delta.charts
 
-model:            ## data/processed -> model/delta_model.xlsx (live formulas), recalculated by LibreOffice
+market:           ## refresh the market-data snapshot (prices, peers, FX) - changes the valuation date
+	$(PY) -m src.delta.market
+
+model:            ## Python mirror (valuation_summary.json) -> Excel model with live formulas, recalculated
+	$(PY) -m src.delta.model
 	$(PY) -m src.delta.build_excel
 	$(PY) -m src.delta.recalc model/delta_model.xlsx
 
