@@ -1,9 +1,9 @@
 # Rebuild everything from primary sources. `make all` runs every stage in order.
 PY ?= python3
 
-.PHONY: all data fetch extract market charts model preview report test clean
+.PHONY: all data fetch extract market charts model preview report pdf test clean
 
-all: data model charts report
+all: data model charts report pdf
 
 data: fetch extract
 
@@ -29,6 +29,9 @@ preview:          ## render model sheets to report/figures/model_*.png (README i
 
 report:           ## model outputs -> report/delta_initiation.md (every number generated from the model)
 	$(PY) -m src.delta.report
+
+pdf:              ## report/delta_initiation.md -> report/delta_initiation.pdf (pandoc + WeasyPrint, A4)
+	$(PY) -m src.delta.pdf
 
 test:
 	$(PY) -m pytest -q tests

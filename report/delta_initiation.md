@@ -58,6 +58,7 @@ author: "Anoushka · Student research for educational purposes only. Not investm
 # Company overview
 
 Delta Electronics (Taipei) makes power and thermal-management products in four segments.[^fs25seg]
+
 - **Power Electronics** (51% of FY2025 segment revenue): components, power supplies and systems, fans and thermal management.
 - **Infrastructure** (33%): ICT infrastructure (data-centre power and cooling systems), energy infrastructure and displays.
 - **Automation** (10%): industrial and building automation.
@@ -76,11 +77,14 @@ No single customer exceeded 10% of revenue in FY2025.[^fs25geo] The AI business 
 
 **Geography: selling to the US, building in Asia.** The US has become Delta's largest single-country market: 36% of FY2025 revenue (NT$197.2bn), up from 23% in FY2021. Mainland China fell from 33% to 15%.[^fs25geo] Manufacturing assets sit elsewhere. Of NT$228.4bn of non-current assets, Thailand holds NT$71.0bn, Taiwan NT$62.5bn, China NT$33.9bn and the US only NT$7.3bn.[^fs25geo] Expansion is under way in Thailand (more plants due in 2026–27), the US, China and Taiwan,[^q2call] and in a new large site in Penang, Malaysia.[^q3call]
 
+![Revenue and assets by region](figures/geography.png){width=80%}
+
 ![Revenue by segment](figures/segment_revenue.png){width=88%}
 
 # Industry: why AI racks need far more power and cooling
 
 A single AI rack now draws power on a scale data centres weren't built for: NVIDIA's GB200 NVL72 rack draws about 120 kW and is liquid cooled.[^nvgb200] The next step is NVIDIA's 800V DC architecture, which targets 1 MW IT racks from 2027, developed with partners through the Open Compute Project.[^nv800] Each step up does three things for Delta:
+
 - **More content.** More power conversion per rack: Delta supplies power shelves, including a 110 kW PSU for NVIDIA's Rubin platform, where it says it holds a leading position.[^q2call]
 - **New architecture.** HVDC (±400V and 800V), solid-state transformers and fuel cells for on-site power. HVDC mass production starts in 3Q26, with meaningful volume in 2027.[^q2call]
 - **Liquid cooling.** Racks at these densities are liquid cooled.[^nvgb200] Delta's liquid cooling reached NT$25bn of revenue in 3Q26, and management expects liquid-to-air cooling to stay in use longer than the market thinks.[^q3call][^q2call]
@@ -92,6 +96,7 @@ The constraint is the grid itself. The IEA estimates data centres used about 1.5
 # Segment forecasts and scenarios
 
 Our forecast starts from 9M26 actuals plus a 4Q26 estimate of NT$218.0bn (management guides Q4 above Q3's NT$197.1bn).[^q3call] Revenue is then built in two parts:
+
 - **AI data-centre revenue**, anchored at 50% of FY2026E revenue (power 25%, liquid cooling 13%, other 12%),[^q3call] grows with AI data-centre capex times Delta's content and share gain.
 - **The rest** grows with its own drivers: industrial demand for Automation, EV demand for Mobility.
 
@@ -144,6 +149,7 @@ EBIT is segment revenue × segment margin. All 40 drivers, with a rationale for 
 # Valuation
 
 **DCF.** WACC is 9.26%. That combines a cost of equity of 9.46% with a small amount of debt, about 3% of capital at market value:
+
 - **Risk-free rate 2.03%:** Taiwan's 10-year government bond yield.[^tpex]
 - **Equity risk premium 5.01%:** mature market 4.23% plus 0.78% for Taiwan.[^damo]
 - **Levered beta 1.48:** from an industry unlevered beta of 1.45.[^damo] A regression on the TAIEX gives 1.73 (2-year raw) and 1.49 (Blume-adjusted).
@@ -151,6 +157,7 @@ EBIT is segment revenue × segment margin. All 40 drivers, with a rationale for 
 Five years of free cash flow to the firm and a Gordon terminal value at 2.0% growth give an enterprise value of NT$1,753.9bn, of which the terminal value is 78%. Adding NT$82.5bn of net cash and investments, and deducting minorities at their 10.5% share of earnings, gives **NT$675 a share** today. The terminal value implies only 7.3× FY2030E EBITDA. Using a 12× exit multiple instead gives NT$1,010. **That gap is the largest judgement in this valuation** `[ANALYST TO REVIEW]`.
 
 **Comps.** Peers trade at a median 13.4× FY1 EV/EBITDA and 16.8× FY1 P/E.[^cons] Applied to our FY2027E, these give NT$982 and NT$737: comps value NT$859.
+
 - **Closest peers:** Vertiv and Schneider are the closest data-centre power plays.
 - **Taiwan peers:** Lite-On and AcBel share Delta's power-supply market but are smaller and lower-margin.
 - **Eaton** adds US electrical exposure.
@@ -189,7 +196,68 @@ Five years of free cash flow to the firm and a Gordon terminal value at 2.0% gro
 
 **A. Model and sources.** Full statements FY2021A–FY2030E, schedules, DCF, comps and checks are in `model/delta_model.xlsx`, generated from code with live formulas. Every input is in `model/assumptions.csv` and `model/valuation_inputs.csv`, and every sourced figure, with page and URL, is in `data/sources.csv`. The Python mirror (`src/delta/model.py`) agrees with the workbook within 0.1% in all scenarios.
 
-**B. Basis of preparation.**
+**B. Summary financial statements (draft Base case).**
+
+| NT$bn | FY2024A | FY2025A | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **Income statement** | | | | | | | |
+| Revenue | 421.1 | 554.9 | 757.7 | 918.5 | 1,051.9 | 1,161.6 | 1,257.6 |
+| Gross profit | 136.6 | 190.2 | 265.2 | 321.5 | 368.2 | 406.6 | 440.2 |
+| EBIT | 47.7 | 83.9 | 127.7 | 160.0 | 186.3 | 207.9 | 225.7 |
+| D&A | 25.0 | 27.8 | 35.0 | 46.5 | 57.5 | 64.3 | 68.6 |
+| EBITDA | 72.7 | 111.8 | 162.7 | 206.5 | 243.8 | 272.2 | 294.3 |
+| Profit before tax | 51.3 | 87.9 | 137.9 | 164.9 | 192.3 | 215.5 | 235.2 |
+| Income tax | -10.9 | -19.9 | -31.3 | -37.4 | -43.6 | -48.9 | -53.4 |
+| Net income to parent | 35.2 | 60.1 | 95.4 | 114.1 | 133.0 | 149.1 | 162.7 |
+| **Balance sheet (year end)** | | | | | | | |
+| Cash | 117.5 | 151.2 | 156.6 | 183.4 | 235.1 | 301.3 | 379.1 |
+| Receivables | 89.9 | 121.7 | 166.1 | 201.3 | 230.6 | 254.6 | 275.6 |
+| Inventories | 83.9 | 101.5 | 148.4 | 171.8 | 191.1 | 211.0 | 228.4 |
+| PP&E | 115.7 | 142.0 | 178.5 | 215.6 | 242.7 | 259.8 | 272.9 |
+| Total assets | 531.9 | 639.6 | 777.3 | 903.9 | 1,034.8 | 1,165.4 | 1,297.8 |
+| Payables | 69.2 | 94.5 | 124.1 | 147.2 | 168.6 | 186.2 | 201.6 |
+| Total debt | 64.4 | 74.0 | 74.0 | 74.0 | 74.0 | 74.0 | 74.0 |
+| Equity to parent | 230.1 | 268.1 | 333.3 | 399.7 | 475.7 | 558.2 | 646.4 |
+| **Cash flow** | | | | | | | |
+| Cash flow from operations | 72.9 | 98.5 | 108.7 | 161.7 | 198.2 | 220.3 | 241.1 |
+| Capex | -35.1 | -47.2 | -70.0 | -82.7 | -84.2 | -81.3 | -81.7 |
+| Free cash flow | 37.8 | 51.3 | 38.7 | 79.0 | 114.1 | 138.9 | 159.3 |
+| Dividends paid | -16.7 | -18.2 | -30.1 | -47.7 | -57.0 | -66.5 | -74.5 |
+
+*FY2024A–FY2025A audited; FY2026E–FY2030E model forecast. Capex and dividends shown as cash outflows.*
+
+**C. Base-case assumptions** `[ANALYST TO REVIEW]`
+
+| Base case | FY2026E | FY2027E | FY2028E | FY2029E | FY2030E |
+|---|---:|---:|---:|---:|---:|
+| AI data-centre capex growth | – | 30.0% | 15.0% | 8.0% | 5.0% |
+| Content gain: AI power | – | 5.0% | 5.0% | 5.0% | 5.0% |
+| Content gain: liquid cooling | – | 10.0% | 10.0% | 8.0% | 6.0% |
+| Content gain: other AI | – | 3.0% | 3.0% | 3.0% | 3.0% |
+| Power Electronics excl. AI growth | – | 4.0% | 4.0% | 4.0% | 4.0% |
+| Infrastructure excl. AI growth | – | 6.0% | 6.0% | 6.0% | 6.0% |
+| Automation growth | – | 8.0% | 6.0% | 6.0% | 6.0% |
+| Mobility growth | – | 0.0% | 5.0% | 8.0% | 8.0% |
+| Power Electronics margin | 20.0% | 20.0% | 20.0% | 20.0% | 20.0% |
+| Infrastructure margin | 18.5% | 18.5% | 18.5% | 18.5% | 18.5% |
+| Automation margin | 2.0% | 4.0% | 5.0% | 6.0% | 6.0% |
+| Mobility margin | -4.0% | -2.0% | 0.0% | 2.0% | 3.0% |
+| Gross margin | 35.0% | 35.0% | 35.0% | 35.0% | 35.0% |
+| R&D % revenue | 8.5% | 8.5% | 8.5% | 8.5% | 8.5% |
+| Effective tax rate | 22.7% | 22.7% | 22.7% | 22.7% | 22.7% |
+| Capex % revenue (FY2026E: NT$bn) | 70 | 9.0% | 8.0% | 7.0% | 6.5% |
+| Depreciation % opening PP&E | 22.0% | 24.0% | 25.0% | 25.0% | 25.0% |
+| Receivable days | 80 | 80 | 80 | 80 | 80 |
+| Inventory days | 110 | 105 | 102 | 102 | 102 |
+| Payable days | 92 | 90 | 90 | 90 | 90 |
+| Dividend payout (prior-year NI) | NT$11.6/sh | 50.0% | 50.0% | 50.0% | 50.0% |
+| 4Q26E revenue (NT$bn) | 218 | – | – | – | – |
+| AI shares of FY2026E revenue (power / cooling / other) | 25% / 13% / 12% | – | – | – | – |
+
+*All 40 drivers, with Bear / Base / Bull values and a rationale for each, are in `model/assumptions.csv`; valuation inputs are in `model/valuation_inputs.csv`.*
+
+**D. Basis of preparation.**
+
 - **Historicals:** audited FY2021–FY2025 and reviewed 1H26 statements (Taiwan IFRS, NT$ thousands, shown in NT$bn).
 - **Q3 2026:** from the 3Q26 earnings slides and transcript; the English Q3 statements weren't yet published.
 - **Market data:** 2026-11-23, Yahoo Finance via yfinance.

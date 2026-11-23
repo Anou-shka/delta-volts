@@ -6,6 +6,7 @@
 | `processed/fs_lines.csv` | Every line of the consolidated balance sheet, income statement and cash flow statement, every period column, **as reported** (NT$ thousands). |
 | `processed/historicals.csv` | Standardised model lines by period (**NT$ millions**; EPS in NT$). Periods: FY2021–FY2025, 1Q25, 2Q25, 1H25, 1Q26, 2Q26, 1H26. |
 | `processed/segments.csv` | Segment revenue and operating profit from the segment note (NT$ thousands). `latest = True` marks the most recent (restated) presentation of each period. |
+| `processed/geography.csv` | Revenue and non-current assets by region from each annual report's segment note (NT$ thousands); regions tie to group revenue. |
 | `processed/monthly_revenue.csv` | Unaudited monthly revenue releases, Jan 2025 – Oct 2026 (NT$ millions), with segment mix %. |
 | `slides_3q26.csv` | 3Q26 and 9M26 figures hand-entered from the 3Q26 earnings slides (page per row). Used until the English Q3 2026 statements are published; tied to the audited 1H26 note by the checks. |
 | `processed/checks.csv` | Every tie-out check (subtotals, statement links, cash, restatements, segments, monthly vs quarterly). |

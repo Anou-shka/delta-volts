@@ -9,6 +9,7 @@ Run: python -m src.delta.report
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pandas as pd
@@ -154,6 +155,80 @@ def comps_table(c: dict) -> str:
     return "\n".join(lines)
 
 
+def statements_table(c: dict) -> str:
+    """Summary income statement, balance sheet and cash flow, FY2024A-FY2030E (NT$bn)."""
+    h, f = c["h"], c["f"]
+    cols = ["FY2024", "FY2025"] + FC
+    hist = {  # label: (historicals key, forecast key, sign)
+        "Revenue": ("revenue", "revenue", 1), "Gross profit": ("gross_profit", "gross_profit", 1),
+        "EBIT": ("ebit", "ebit", 1), "D&A": ("d_and_a", "d_and_a", 1), "EBITDA": ("ebitda", "ebitda", 1),
+        "Profit before tax": ("pbt", "pbt", 1), "Income tax": ("tax", "tax", 1),
+        "Net income to parent": ("ni_parent", "ni_parent", 1),
+        "Cash": ("cash", "bs_cash", 1), "Receivables": ("receivables", "bs_receivables", 1),
+        "Inventories": ("inventories", "bs_inventories", 1), "PP&E": ("ppe", "bs_ppe", 1),
+        "Total assets": ("total_assets", "total_assets", 1), "Payables": ("payables", "bs_payables", 1),
+        "Total debt": ("total_debt", "total_debt", 1), "Equity to parent": ("equity_parent", "bs_equity_parent", 1),
+        "Cash flow from operations": ("cfo", "cfo", 1), "Capex": ("capex", "capex", -1),
+        "Free cash flow": (None, "fcf", 1), "Dividends paid": ("dividends_paid", "dividends", 1),
+    }
+    sections = {"Income statement": ["Revenue", "Gross profit", "EBIT", "D&A", "EBITDA", "Profit before tax",
+                                     "Income tax", "Net income to parent"],
+                "Balance sheet (year end)": ["Cash", "Receivables", "Inventories", "PP&E", "Total assets",
+                                             "Payables", "Total debt", "Equity to parent"],
+                "Cash flow": ["Cash flow from operations", "Capex", "Free cash flow", "Dividends paid"]}
+    lines = ["| NT$bn | " + " | ".join(p + ("A" if p not in FC else "E") for p in cols) + " |",
+             "|---|" + "---:|" * len(cols)]
+    for sec, labels in sections.items():
+        lines.append(f"| **{sec}** |" + " |" * len(cols))
+        for lab in labels:
+            hk, fk, sign = hist[lab]
+            vals = []
+            for p in cols:
+                if p in FC:
+                    v = f[fk][p] * (1 if lab != "Capex" else -1)
+                elif hk is None:
+                    v = h.at["cfo", p] + h.at["capex", p]
+                else:
+                    v = h.at[hk, p]
+                vals.append(f"{v / 1000:,.1f}")
+            lines.append(f"| {lab} | " + " | ".join(vals) + " |")
+    return "\n".join(lines)
+
+
+def assumptions_table(c: dict) -> str:
+    """Base-case drivers by year (the full set, Bear/Base/Bull, is in model/assumptions.csv)."""
+    a = c["a"]
+    rows = [("AI data-centre capex growth", "dc_capex_growth", "pct"), ("Content gain: AI power", "content_power", "pct"),
+            ("Content gain: liquid cooling", "content_cooling", "pct"), ("Content gain: other AI", "content_other", "pct"),
+            ("Power Electronics excl. AI growth", "g_pe_nonai", "pct"),
+            ("Infrastructure excl. AI growth", "g_infra_nonai", "pct"), ("Automation growth", "g_auto", "pct"),
+            ("Mobility growth", "g_mob", "pct"), ("Power Electronics margin", "m_pe", "pct"),
+            ("Infrastructure margin", "m_infra", "pct"), ("Automation margin", "m_auto", "pct"),
+            ("Mobility margin", "m_mob", "pct"), ("Gross margin", "gross_margin", "pct"), ("R&D % revenue", "rnd_pct", "pct"),
+            ("Effective tax rate", "etr", "pct"), ("Capex % revenue (FY2026E: NT$bn)", "capex_pct", "pct"),
+            ("Depreciation % opening PP&E", "dep_rate", "pct"), ("Receivable days", "dso", "days"),
+            ("Inventory days", "dio", "days"), ("Payable days", "dpo", "days"), ("Dividend payout (prior-year NI)", "payout", "pct")]
+    lines = ["| Base case | " + " | ".join(p + "E" for p in FC) + " |", "|---|" + "---:|" * 5]
+    for label, key, unit in rows:
+        vals = []
+        for p in FC:
+            if key == "capex_pct" and p == "FY2026":
+                vals.append(f"{a['capex_2026']['FY2026'] / 1000:.0f}")
+            elif p in a.get(key, {}):
+                x = a[key][p]
+                vals.append(f"{x * 100:.1f}%" if unit == "pct" else f"{x:.0f}")
+            elif key == "payout" and p == "FY2026":
+                vals.append(f"NT${a['dps_2026']['FY2026']:.1f}/sh")
+            else:
+                vals.append("–")
+        lines.append(f"| {label} | " + " | ".join(vals) + " |")
+    lines.append("| 4Q26E revenue (NT$bn) | " + f"{a['q4_revenue']['FY2026'] / 1000:.0f} | – | – | – | – |")
+    lines.append("| AI shares of FY2026E revenue (power / cooling / other) | "
+                 + f"{a['ai_power_share']['FY2026'] * 100:.0f}% / {a['ai_cooling_share']['FY2026'] * 100:.0f}% / "
+                 + f"{a['ai_other_share']['FY2026'] * 100:.0f}% | – | – | – | – |")
+    return "\n".join(lines)
+
+
 def write() -> str:
     c = context()
     h, f, s, d, rd, a, v, sv, slv, g, gn = (c[k] for k in ("h", "f", "s", "d", "rd", "a", "v", "sv", "slv", "g", "gn"))
@@ -248,6 +323,8 @@ No single customer exceeded 10% of revenue in FY2025.[^fs25geo] The AI business 
 
 **Geography: selling to the US, building in Asia.** The US has become Delta's largest single-country market: {pct(us_share, 0)} of FY2025 revenue ({bn(g.at['U.S.A.', 'FY2025'])}), up from {pct(us_share21, 0)} in FY2021. Mainland China fell from {pct(cn_share21, 0)} to {pct(cn_share, 0)}.[^fs25geo] Manufacturing assets sit elsewhere. Of {bn(nca25.sum())} of non-current assets, Thailand holds {bn(nca25['Thailand'])}, Taiwan {bn(nca25['Taiwan'])}, China {bn(nca25['Mainland China'])} and the US only {bn(nca25['U.S.A.'])}.[^fs25geo] Expansion is under way in Thailand (more plants due in 2026–27), the US, China and Taiwan,[^q2call] and in a new large site in Penang, Malaysia.[^q3call]
 
+![Revenue and assets by region](figures/geography.png){{width=80%}}
+
 ![Revenue by segment](figures/segment_revenue.png){{width=88%}}
 
 # Industry: why AI racks need far more power and cooling
@@ -327,7 +404,19 @@ Five years of free cash flow to the firm and a Gordon terminal value at {pct(v['
 
 **A. Model and sources.** Full statements FY2021A–FY2030E, schedules, DCF, comps and checks are in `model/delta_model.xlsx`, generated from code with live formulas. Every input is in `model/assumptions.csv` and `model/valuation_inputs.csv`, and every sourced figure, with page and URL, is in `data/sources.csv`. The Python mirror (`src/delta/model.py`) agrees with the workbook within 0.1% in all scenarios.
 
-**B. Basis of preparation.**
+**B. Summary financial statements (draft Base case).**
+
+{statements_table(c)}
+
+*FY2024A–FY2025A audited; FY2026E–FY2030E model forecast. Capex and dividends shown as cash outflows.*
+
+**C. Base-case assumptions** `[ANALYST TO REVIEW]`
+
+{assumptions_table(c)}
+
+*All 40 drivers, with Bear / Base / Bull values and a rationale for each, are in `model/assumptions.csv`; valuation inputs are in `model/valuation_inputs.csv`.*
+
+**D. Basis of preparation.**
 - **Historicals:** audited FY2021–FY2025 and reviewed 1H26 statements (Taiwan IFRS, NT$ thousands, shown in NT$bn).
 - **Q3 2026:** from the 3Q26 earnings slides and transcript; the English Q3 statements weren't yet published.
 - **Market data:** {s['price_date']}, Yahoo Finance via yfinance.
@@ -353,6 +442,8 @@ Five years of free cash flow to the firm and a Gordon terminal value at {pct(v['
 [^nv800]: NVIDIA developer blog, "NVIDIA 800 V HVDC architecture will power the next generation of AI factories".
 [^news]: Focus Taiwan (3 Nov 2026) and Yahoo Finance (Nov 2026) market reports on the TAIEX sell-off.
 """
+    # a list needs a blank line before it in pandoc (GitHub doesn't mind)
+    md = re.sub(r"(?m)^((?!- |\s*$|\|).+)\n(- )", r"\1\n\n\2", md)
     OUT.write_text(md)
     return md
 

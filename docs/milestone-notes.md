@@ -262,3 +262,28 @@ FY2025 Infrastructure revenue grew 82% to NT$182.0bn, and its segment profit ros
 
 - Rewrite **Investment thesis**, **Key debate** and **Price target and rating** in `src/delta/report.py` (the drafts are there with their reasoning), then run `make report`.
 - The rating follows from the draft Base case and the terminal-value choice (D14). Set those first.
+
+---
+
+## M6 — Polish (23 Nov 2026)
+
+### What was built
+
+- **`report/delta_initiation.pdf`:** A4, 10 pages. It has a running header (ticker, initiation, date), "Page n of N", the disclaimer on every page, and a styled title banner. Valuation and the appendix start on new pages, and sources are numbered once each. `src/delta/pdf.py` renders it from the generated Markdown (pandoc, then WeasyPrint). `tests/test_pdf.py` checks it renders at 10–12 pages.
+- **Report appendix completed to spec:** summary income statement, balance sheet and cash flow FY2024A–FY2030E, plus the Base-case assumptions table. There's also a new chart of revenue vs non-current assets by region (the tariff-exposure picture).
+- **`docs/defence.md`:** 33 interview questions in six groups (business, AI thesis, forecasts, valuation, risks, model mechanics). Each has a pointer to the evidence and space for my answer; no answers are written.
+- **`docs/case-study.md`:** a one-page website draft. The disclosure line about AI tools is tagged `[ANALYST TO REVIEW]`.
+- **README:** rewritten for a reader arriving cold. It covers the answer first, key findings, deliverables, method, how to run, what's left and limitations.
+- **One command:** `make all` runs filings → extract → mirror + Excel → charts → report → PDF; `make test` runs 26 tests. CI installs LibreOffice and pandoc and runs everything on every push.
+
+### The 3 most important choices
+
+1. **The PDF is built from the same generated Markdown,** so the GitHub page, the PDF and the model can't diverge. Fixing one bug (pandoc reading "NT$" as maths) fixed it everywhere.
+2. **Length was reached with content, not padding.** The spec asks for 10–12 pages. The gap was closed by the appendix the spec requires (full statements, assumptions) and one more chart that carries a finding.
+3. **The defence sheet points to evidence, not answers.** Each question names the decision, sheet or source that holds the answer, so preparation means re-reading my own work rather than memorising lines.
+
+### 3 questions an interviewer could ask
+
+1. "Talk me through your report in two minutes."
+2. "If I change your AI capex assumption, how long until your report reflects it?" (One command; everything regenerates.)
+3. "What would you do differently with another month?"

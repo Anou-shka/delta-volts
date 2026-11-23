@@ -306,12 +306,47 @@ def chart_sensitivity(mode: str) -> Path:
     return out
 
 
+def chart_geography(mode: str) -> Path:
+    """Share of FY2025 revenue vs share of non-current assets by region (same unit, one axis)."""
+    t = THEMES[mode]
+    g = pd.read_csv(PROCESSED / "geography.csv")
+    g = g[(g.period == "FY2025") & (g.document == "fs_2025_annual_consolidated.pdf")].set_index("region")
+    order = ["U.S.A.", "Mainland China", "Taiwan", "Thailand", "Others"]
+    rev = g.revenue[order] / g.revenue.sum() * 100
+    nca = g.noncurrent_assets[order] / g.noncurrent_assets.sum() * 100
+    fig, ax = plt.subplots(figsize=(8, 3.6), dpi=200)
+    fig.patch.set_facecolor(t["surface"])
+    _style(ax, t)
+    x = range(len(order))
+    for off, vals, color, label in ((-0.19, rev, t["series"][0], "Share of revenue"),
+                                    (0.19, nca, t["series"][1], "Share of non-current assets")):
+        ax.bar([i + off for i in x], vals, width=0.36, color=color, edgecolor=t["surface"], linewidth=1.5,
+               label=label)
+        for i, v in zip(x, vals):
+            ax.text(i + off, v + 0.8, f"{v:.0f}%", ha="center", va="bottom", fontsize=8.5, color=t["text2"])
+    ax.set_xticks(list(x), ["US", "Mainland China", "Taiwan", "Thailand", "Rest of world"])
+    ax.set_ylim(0, max(rev.max(), nca.max()) * 1.2)
+    ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0f}%")
+    ax.legend(loc="lower left", frameon=False, fontsize=9, labelcolor=t["text2"], ncol=2, bbox_to_anchor=(0, 1.0))
+    fig.suptitle("Selling to the US, building in Asia (FY2025)", x=0.02, y=0.99, ha="left", fontsize=13,
+                 color=t["text"], fontweight="semibold")
+    fig.text(0.02, 0.005, "Source: Delta FY2025 consolidated financial statements, Note 14(6) geographical "
+             "information (shares of the FY2025 totals).", fontsize=7.5,
+             color=t["text2"])
+    fig.tight_layout(rect=(0, 0.04, 1, 0.95))
+    out = FIG / f"geography{'' if mode == 'light' else '_dark'}.png"
+    fig.savefig(out, facecolor=t["surface"])
+    plt.close(fig)
+    return out
+
+
 def main() -> int:
     FIG.mkdir(parents=True, exist_ok=True)
     _font()
     for mode in THEMES:
         print(chart_segments(mode))
         print(chart_margins(mode))
+        print(chart_geography(mode))
         if MODEL.exists():
             print(chart_forecast(mode))
         if SUMMARY.exists():

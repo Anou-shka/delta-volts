@@ -4,3 +4,4 @@ openpyxl>=3.1
 yfinance>=0.2.50
 matplotlib>=3.8
 pytest>=8
+weasyprint>=62
